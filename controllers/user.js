@@ -1,33 +1,92 @@
+/** requirements - thrid party **/
 const {response,request} = require('express');
+const bcryptjs = require('bcryptjs');
 
-const getUser = (req = request, res = response) =>{
+/** Local requirements **/
+const User = require("../models/users");
+
+
+const getUser = async(req = request, res = response) =>{
     const {id} = req.params;
+    if(id == req.uid){ //realiza la petición el mismo que quiere borrarlo.
+        const user = await User.findById(id);
+        res.json({
+            user,
+            success: true
+        });
+    }else{
+        res.json({
+            msg:`You cannot request a different user to you`,
+            success: false
+        });
+    }
+}
+
+const putUser = async(req = request, res = response) => {
+    
+    const {id} = req.params;
+    
+    if(id == req.uid){
+    
+        const {password, ...rest} = req.body;
+        
+        //if user want to change the password
+        if(password){
+            const salt = bcryptjs.genSaltSync();
+            rest.password = bcryptjs.hashSync(password,salt);
+        }
+        
+        //update user.
+        await User.findByIdAndUpdate(id,rest)
+    }else{
+        res.json({
+            success: false,
+            msg: 'You cannot request a different usr to you'
+        })
+    }
+}
+
+const postUser = async(req = request, res = response) => {
+    
+    
+    
+    //Verify fields.
+    const{password, email,userName,type} = req.body;
+
+
+    //Create the user instance
+    const user = new User({userName,email,password,type});
+
+    //Encrypt password.
+    const salt = bcryptjs.genSaltSync();
+    user.password = bcryptjs.hashSync(password,salt)
+
+
+    //Save user in DataBase.
+    await user.save()    
+
+    //Obtenemos la información del body.
     res.json({
-        msg:'Get API - Controller - Get User',
-        id: id
+        msg:'Post API - Controller',
+        user
     })
 }
 
-const putUser = (req = request, res = response) => {
+const deleteUser = async(req = request, res = response) => {
     const {id} = req.params;
-    res.json({
-        msg:'Put API - Controller - Update User ',
-        id : id
-    })
-}
+    if(id == req.uid){ //realiza la petición el mismo que quiere borrarlo.
+        await User.findByIdAndUpdate(id,{status:false});
+        res.json({
+            msg:`user with ${id} deleted`,
+            success: true
+        });
+    }else{
+        res.json({
+            msg:`user with ${id} not deleted`,
+            success: false
+        });
+    }
 
-const postUser = (req = request, res = response) => {
-    res.json({
-        msg:'Post API - Controller'
-    })
-}
-
-const deleteUser = (req = request, res = response) => {
-    const {id} = req.params;
-    res.json({
-        msg:'Delete API - Controller - Delete User',
-        id: id
-    })
 }
 
 module.exports = {
