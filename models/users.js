@@ -26,7 +26,7 @@ const User = Schema({
     }],
     status:{
         type:Boolean,
-        default: false
+        default: true
     },
     postNotifications:{
         type:Boolean,

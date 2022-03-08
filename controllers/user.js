@@ -4,6 +4,7 @@ const bcryptjs = require('bcryptjs');
 
 /** Local requirements **/
 const User = require("../models/users");
+const Service = require("../models/services");
 
 
 const getUser = async(req = request, res = response) =>{
@@ -65,9 +66,25 @@ const postUser = async(req = request, res = response) => {
     //Save user in DataBase.
     await user.save()    
 
+    //If type True -> He or she have a business.
+    if(type){
+        const{serviceCategory,serviceInfo,serviceName,
+              cityName, street, postalCode} = req.body;
+
+        const localization = {cityName,street,postalCode}
+
+        //Create de Service instace
+        const service = new Service({serviceCategory,serviceInfo,serviceName,localization});
+
+
+        //Save service en DB.
+        await service.save()
+
+        return res.json({user,service});
+    }
+
     //Obtenemos la información del body.
     res.json({
-        msg:'Post API - Controller',
         user
     })
 }
