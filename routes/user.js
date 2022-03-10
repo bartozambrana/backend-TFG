@@ -18,6 +18,8 @@ router.put('/:id',[
     jwtValidation,
     check('id','No es un ID válido').isMongoId()
 ], putUser);      //Update user :id.
+
+// New user
 router.post('/',[
     check('email','email not valid').isEmail().notEmpty(),
     check('userName','user name invalid').isString().notEmpty(),
