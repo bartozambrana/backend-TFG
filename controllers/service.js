@@ -80,6 +80,35 @@ const putService = async (req,res)=>{
 
 }
 
+const postFollowService = async (req,res) => {
+    const {id} = req.params;
+    try {
+        const exits = await User.findOne({_id:req.uid,followServices : {$in: [id]}});
+
+        if(!exits){
+            await User.findByIdAndUpdate(req.uid,{
+                $push: {followServices: id}
+            });
+            
+            return res.json({
+                success: true
+            })
+        }
+        res.status(400).json({
+            success:false,
+            msg:'That user is already following that service'
+        });
+
+    
+        
+    } catch (error) {
+        res.status(500).json({
+            msg: error,
+            success: false
+        });
+    }
+    
+}
 
 const deleteService = (req,res)=>{}
 
@@ -88,5 +117,6 @@ module.exports ={
     getService,
     putService,
     deleteService,
-    postService
+    postService,
+    postFollowService
 }

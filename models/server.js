@@ -1,4 +1,5 @@
 const express = require("express");
+const fileUpload = require("express-fileupload");
 const cors = require('cors');
 const { dbConnection } = require("../database/config");
 
@@ -8,7 +9,8 @@ class Server{
         this.port = process.env.PORT;
         this.userPath = '/api/users';
         this.authPath = '/api/auth';
-        this.servicePath = '/api/services' 
+        this.servicePath = '/api/services';
+        this.postPath = '/api/posts';
         
         //Conectamos a base de datos.
         this.connectionDB();
@@ -35,16 +37,22 @@ class Server{
 
         //Parseo del body. Todo lo que se mande en el body lo serializa a JSON para una
         //mayor facilidad en el tratamiento de la información
-        this.app.use(express.json()); 
-
+        this.app.use(express.json({limit:'50mb'}));  //limit for json
+        this.app.use(express.urlencoded({limit: '50mb',extended:true})) //limit for image data encode
         //Directorio público
         this.app.use( express.static('public'));
+
+        //Upload-files. 
+        this.app.use(fileUpload({useTempFiles:true,tempFileDir:'/tmp/'}))
+   
+        
     }
     //manejador de rutas.
     routes(){
         this.app.use(this.userPath,require('../routes/user'));
         this.app.use(this.authPath,require('../routes/auth'));
         this.app.use(this.servicePath,require('../routes/service'));
+        this.app.use(this.postPath,require('../routes/post'));
     }
 
     listen(){
