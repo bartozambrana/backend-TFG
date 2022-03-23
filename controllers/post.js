@@ -59,16 +59,17 @@ const putPost = async(req = request, res = response)=>{
 const deletePost = async(req = request, res = response) =>{
     //Verify that the user is the director of the businnes how post the post.
     const {id} = req.params;
-    const service = await Post.findById(id).populate('idService');
+    const post = await Post.findById(id).populate('idService');
 
-    if(service && (service.idService.idUser == req.uid)){
+    if(post && (post.idService.idUser == req.uid)){
 
-
+        deleteFileCloudinary(post.photo)
         //we only update the fields of the body request 
         await Post.findByIdAndDelete(id);
        
         return res.json({
-            success:true
+            success:true,
+            msg:'post deleted'
         });
     }
 
