@@ -61,15 +61,26 @@ const putService = async (req,res)=>{
     const {id} = req.params;
     //Verificamos si el id pasado corresponde al negocio que el usuario es propietario.
     const service = await Service.findOne({id});
+
+    
     if(service && service.idUser._id == req.uid){
-        const {serviceName,idUser, ...rest} = req.body;
+        const {idUser, ...rest} = req.body;
+        rest.localization = service.localization;
+
+        if(rest.cityName)
+            rest.localization.cityName = rest.cityName;
+        if(rest.street)
+            rest.localization.street = rest.street; 
+        if(rest.postalCode)
+            rest.localizacion.postalCode =rest.postalCode;
+
         await Service.findByIdAndUpdate(id,rest);
 
         //Obtain the service Updated.
         updateService = await Service.findOne({id});
         return res.json({
             success:true,
-            updateService
+            service:updateService
         });
     }
     res.json({

@@ -38,6 +38,13 @@ router.post('/follow/:id',[
 router.put('/:id',[
     jwtValidation,
     check('id','No es un ID válido').isMongoId().custom(serviceIdValid),
+    check('serviceCategory','Invalid').optional().isString().notEmpty(),
+    check('serviceName','Invalid').optional().isString().notEmpty().custom(serviceNameValid),
+    check('serviceInfo','Invalid').optional().isString().notEmpty(),
+    check('cityName','Invalid').optional().isString().notEmpty(),
+    check('street','Invalid').optional().isString().notEmpty(),
+    check('postalCode','Invalid').optional().isNumeric().notEmpty(),
+    check('idUser','invalid').optional().isMongoId().notEmpty(),
     fieldsValidation
 ],putService);
 
