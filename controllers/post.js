@@ -28,6 +28,7 @@ const putPost = async(req = request, res = response)=>{
         //The only thing that cant be update is the idService.
         const {idService , ...rest} = req.body;
         
+        //updatePhotoPost
         if(Object.keys(req.files).length != 0){
             validationFilePost(req,res);
             //clean past photo.
@@ -37,11 +38,11 @@ const putPost = async(req = request, res = response)=>{
 
 
             //upload the new photo.
-            const urls = await uploadCloudinary(req,response);
+            const urls = await uploadCloudinary(req,res);
             rest.photo = urls[0];
         }
         
-        //updatePhotoPost
+        
         //we only update the fields of the body request 
         await Post.findByIdAndUpdate(id,rest);
        

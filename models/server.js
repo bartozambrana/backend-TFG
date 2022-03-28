@@ -11,6 +11,7 @@ class Server{
         this.authPath = '/api/auth';
         this.servicePath = '/api/services';
         this.postPath = '/api/posts';
+        this.workPath = '/api/works';
         
         //Conectamos a base de datos.
         this.connectionDB();
@@ -53,6 +54,7 @@ class Server{
         this.app.use(this.authPath,require('../routes/auth'));
         this.app.use(this.servicePath,require('../routes/service'));
         this.app.use(this.postPath,require('../routes/post'));
+        this.app.use(this.workPath,require('../routes/work'));
     }
 
     listen(){

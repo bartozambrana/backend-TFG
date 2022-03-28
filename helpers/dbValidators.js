@@ -1,6 +1,7 @@
 const User = require('../models/users');
 const Service = require('../models/services');
 const Post = require('../models/posts');
+const Work = require('../models/works');
 
 //Email.
 const emailValid = async(email) =>{    
@@ -41,11 +42,19 @@ const postIdValid = async(id) =>{
     }
 }
 
+const workIdValid = async(id) => {
+    const workExists = await Work.findById(id);
+    if(!workExists){
+        throw new Error(`Work with id: ${id} not exixts`);
+    }
+}
+
 
 module.exports = {
     userNameValid,
     emailValid,
     serviceNameValid,
     serviceIdValid,
-    postIdValid
+    postIdValid,
+    workIdValid
 }
