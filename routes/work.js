@@ -12,7 +12,8 @@ const router = Router();
 
 router.get('/:idService',[
     jwtValidation,
-    
+    check('idService','invalid').isMongoId().notEmpty().custom(serviceIdValid),
+    fieldsValidation
 ],getWorks);
 
 

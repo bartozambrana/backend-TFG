@@ -7,8 +7,14 @@ const Service = require('../models/services');
 const User = require('../models/users');
 const {uploadCloudinary,deleteFileCloudinary} = require('../helpers/upload');
 
-const getWorks = (req = request,res = response) => {
-    res.json({msg:'get - Works'});
+
+const getWorks = async(req = request,res = response) => {
+    const {idService} = req.params;
+    const works = await Work.find({idService})
+    res.json({
+        success:true,
+        works
+    })
 }
 
 const postWork = async(req = request,res = response) => {
@@ -79,12 +85,17 @@ const putWork = async(req = request,res = response) => {
         }
 
         //If we receipt one or more new file.
-        if(Object.keys(req.files).length != 0){
+        if(req.files && (Object.keys(req.files).length != 0)){
             const urls = await uploadCloudinary(req,res)
             // update the object.
             workUpdated = await Work.findByIdAndUpdate(id,{
                 $push:{"photos":{$each : urls}}
             },{new: true});
+        }
+        
+        const{description} = req.body;
+        if(description){
+            workUpdated = await Work.findByIdAndUpdate(id,{description},{new:true});
         }
 
         return res.json({

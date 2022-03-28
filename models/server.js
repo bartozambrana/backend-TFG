@@ -38,8 +38,9 @@ class Server{
 
         //Parseo del body. Todo lo que se mande en el body lo serializa a JSON para una
         //mayor facilidad en el tratamiento de la información
-        this.app.use(express.json({limit:'50mb'}));  //limit for json
-        this.app.use(express.urlencoded({limit: '50mb',extended:true})) //limit for image data encode
+        // this.app.use(express.json({limit:'50mb'}));  //limit for json
+        // this.app.use(express.urlencoded({limit: '50mb',extended:true})) //limit for image data encode
+        this.app.use(express.json());
         //Directorio público
         this.app.use( express.static('public'));
 
