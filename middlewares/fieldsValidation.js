@@ -6,8 +6,8 @@ const fieldsValidation = (req,res,next) =>{
     const errors = validationResult(req);
     if(!errors.isEmpty()){
         return res.status(400).json({
-            msg:'There are errors',
-            errors
+            success:false,
+            errors:errors.array()
         });
     }
 

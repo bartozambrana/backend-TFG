@@ -2,6 +2,20 @@ const User = require('../models/users');
 const Service = require('../models/services');
 const Post = require('../models/posts');
 const Work = require('../models/works');
+const Dates = require('../models/dates');
+const Comments = require('../models/Comments');
+const ReplyComment = require('../models/ReplyComment');
+
+const userIdValid = async(idUser) => {
+    if(idUser != req.uid){
+        throw new Error('You sent a different uid than yours')
+    }
+    
+    const userExists = await User.findOne({id:idUser});
+    if(!userExists){
+        throw new Error(`Service with id: ${id} not exists`);
+    }
+}
 
 //Email.
 const emailValid = async(email) =>{    
@@ -49,6 +63,34 @@ const workIdValid = async(id) => {
     }
 }
 
+const dateIdValid = async(id) => {
+    const dateExists = await Dates.findById(id);
+    if(!dateExists){
+        throw new Error(`Date with id: ${id} not exists`);
+    }
+}
+
+const isUserOrService = async(id) => {
+    const user = await User.findById(id)
+    const service = await Service.findById(id);
+    if((!user) && (!service)){
+        throw new Error('You send a id than does not exists')
+    }
+}
+
+const commentIdValid = async(id) => {
+    const commentExists = await Comments.findById(id);
+    if(!commentExists){
+        throw new Error(`Comment with id: ${id} not exixts`);
+    }
+}
+
+const replyIdValid = async(id) => {
+    const commentExists = await ReplyComment.findById(id);
+    if(!commentExists){
+        throw new Error(`Comment with id: ${id} not exixts`);
+    }
+}
 
 module.exports = {
     userNameValid,
@@ -56,5 +98,10 @@ module.exports = {
     serviceNameValid,
     serviceIdValid,
     postIdValid,
-    workIdValid
+    workIdValid,
+    dateIdValid,
+    userIdValid,
+    isUserOrService,
+    commentIdValid,
+    replyIdValid
 }

@@ -12,6 +12,8 @@ class Server{
         this.servicePath = '/api/services';
         this.postPath = '/api/posts';
         this.workPath = '/api/works';
+        this.datePath = '/api/dates';
+        this.commentPath = '/api/comments';
         
         //Conectamos a base de datos.
         this.connectionDB();
@@ -56,6 +58,8 @@ class Server{
         this.app.use(this.servicePath,require('../routes/service'));
         this.app.use(this.postPath,require('../routes/post'));
         this.app.use(this.workPath,require('../routes/work'));
+        this.app.use(this.datePath,require('../routes/date'));
+        this.app.use(this.commentPath,require('../routes/comment'));
     }
 
     listen(){

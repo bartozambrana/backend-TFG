@@ -102,14 +102,21 @@ const postFollowService = async (req,res) => {
             });
             
             return res.json({
-                success: true
-            })
+                success: true,
+                followService:true
+            });
         }
-        res.status(400).json({
-            success:false,
-            msg:'That user is already following that service'
+        
+        await User.findByIdAndUpdate(req.uid,{
+            $pull: {followServices: id}
         });
 
+        return res.json({
+            success: true,
+            followService:false
+        })
+        
+        
     
         
     } catch (error) {
