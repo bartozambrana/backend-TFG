@@ -1,5 +1,6 @@
 const sendGridMail = require('@sendgrid/mail');
-
+const fs = require('fs');
+const path = require('path')
 const htmlEmail = ({text,header})=>{
     return `<!DOCTYPE html>
     <html lang="es">
@@ -152,7 +153,39 @@ const sendMultipleEmails = async({subject,toEmail,text,header}) => {
   
 }
 
+const sendDatesBussinessMan = async({toEmail,nameFile}) => {
+  console.log(toEmail);
+  const pathToAttachment = path.join(__dirname,'../pdfs',nameFile);
+
+  sendGridMail.setApiKey(process.env.SENDGRID_API_KEY);
+  console.log("path to attachment: " , pathToAttachment);
+  const attachment = fs.readFileSync(pathToAttachment).toString("base64");
+
+  const mensaje = {
+    to:toEmail,
+    from:'zpbarto@gmail.com',
+    subject:'Citas solicitadas',
+    text:'Le enviamos las citas solicitadas',
+    attachments:[
+      {
+        content: attachment,
+        filename: "citas.pdf",
+        type: "application/pdf",
+        disposition: "attachment"
+      }
+    ]
+  }
+
+  try {
+    await sendGridMail.send(mensaje)
+  } catch (error) {
+    throw new Error(error);
+  }
+  
+}
+
 module.exports = {
   sendIndividualEmail,
-  sendMultipleEmails
+  sendMultipleEmails,
+  sendDatesBussinessMan
 };

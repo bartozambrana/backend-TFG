@@ -3,13 +3,25 @@ const {Router} = require('express');
 const {check} = require('express-validator');
 
 /** Local requirements **/
-const {getService,putService,postService,deleteService,postFollowService} = require('../controllers/service');
-const { serviceNameValid, serviceIdValid } = require('../helpers/dbValidators');
+const {getService,putService,postService,deleteService,postFollowService, obtainServiceByCategory, obtainCategoriesAvaliables, obtainAllServices} = require('../controllers/service');
+const { serviceNameValid, serviceIdValid, categoryValid } = require('../helpers/dbValidators');
 const { fieldsValidation } = require('../middlewares/fieldsValidation');
 const jwtValidation = require('../middlewares/jwtValidation');
 
 
 const router = Router();
+
+router.get('/all/',[jwtValidation],obtainAllServices)
+
+router.get('/byCategory/',[
+    jwtValidation,
+    check('category','invalid').isString().notEmpty().custom(categoryValid),
+    fieldsValidation
+],obtainServiceByCategory)
+
+router.get('/categories/',[
+    jwtValidation
+],obtainCategoriesAvaliables)
 
 router.get('/:id',[
     jwtValidation,
@@ -17,19 +29,23 @@ router.get('/:id',[
     fieldsValidation
 ],getService);
 
+
+
+
 router.post('/',[
     jwtValidation,
-    check('serviceCategory','Invalid').isString().notEmpty(),
     check('serviceName','Invalid').isString().notEmpty().custom(serviceNameValid),
     check('serviceInfo','Invalid').isString().notEmpty(),
     check('cityName','Invalid').isString().notEmpty(),
     check('street','Invalid').isString().notEmpty(),
     check('postalCode','Invalid').isNumeric().notEmpty(),
-    check('idUser','invalid').isMongoId().notEmpty(),
+    check('serviceCategory','Invalid').isString().notEmpty().custom(categoryValid),
     fieldsValidation
-],postService);
+],postService)
 
-router.post('/follow/:id',[
+
+
+router.post('/follow-unfollow/:id',[
     jwtValidation,
     check('id','It is not a valid Id').isMongoId().notEmpty().custom(serviceIdValid),
     fieldsValidation
@@ -38,13 +54,12 @@ router.post('/follow/:id',[
 router.put('/:id',[
     jwtValidation,
     check('id','No es un ID válido').isMongoId().custom(serviceIdValid),
-    check('serviceCategory','Invalid').optional().isString().notEmpty(),
+    check('serviceCategory','Invalid').optional().isString().notEmpty().custom(categoryValid),
     check('serviceName','Invalid').optional().isString().notEmpty().custom(serviceNameValid),
     check('serviceInfo','Invalid').optional().isString().notEmpty(),
     check('cityName','Invalid').optional().isString().notEmpty(),
     check('street','Invalid').optional().isString().notEmpty(),
     check('postalCode','Invalid').optional().isNumeric().notEmpty(),
-    check('idUser','invalid').optional().isMongoId().notEmpty(),
     fieldsValidation
 ],putService);
 

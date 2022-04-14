@@ -108,6 +108,7 @@ const postComments = async(req = request, res = response) =>{
     }
 }
 
+/* Documented */
 const postReplyTo = async(req = request, res=response) => {
 
     const{id} = req.params;
@@ -159,7 +160,9 @@ const deleteComments = async(req = request, res = response) => {
             }
 
             //delete comment
-           await Comments.findByIdAndUpdate(id,{status:false});
+            const replies = await Comments.findByIdAndUpdate(id,{status:false},{new:true});
+            for (reply of replies.replyTo)
+                await ReplyComment.findByIdAndUpdate(reply.id,{status:false});
            
 
         }else{

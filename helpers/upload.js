@@ -1,9 +1,13 @@
 const path = require('path');
 const fs = require('fs');
 
+
+
 const { response, request } = require('express');
 const { v4: uuidv4 } = require('uuid');
-const Post = require('../models/posts');
+
+const PdfPrinter = require('pdfmake');
+
 
 const cloudinary = require('cloudinary').v2
 cloudinary.config(process.env.CLOUDINARY_URL)
@@ -76,6 +80,101 @@ const cleanFiles = (names) => {
     });
 }
 
+const cleanPDF = (nameFile) => {
+    
+    const pathFile = path.join(__dirname, '../pdfs', nameFile);
+    if (fs.existsSync(pathFile)) {
+        fs.unlinkSync(pathFile)
+    }
+
+
+}
+
+const createPdfDocument = async(dates) => {
+
+    const fonts = {
+        Roboto: {
+          normal: path.resolve(__dirname,'../fonts/WorkSans-Light.ttf'),
+          bold: path.resolve(__dirname,'../fonts/WorkSans-Light.ttf'),
+          italics: path.resolve(__dirname,'../fonts/WorkSans-Light.ttf'),
+          bolditalics: path.resolve(__dirname,'../fonts/WorkSans-Light.ttf')
+        }
+      };
+
+    //Create pdf maker with load's fonts
+    const pdfmake = new PdfPrinter(fonts);
+    //Create styles:
+    const stylesDocument = {
+        header:{
+            fontSize:20,
+            bold:true,
+            alignment:'center',
+            margin:[10,30,10,20],
+            text:'Citas'
+        },
+        footer:{
+            fontSize:10,
+            alignment:'right',
+            margin:[10,30,10,20],
+            text:'© TFG-Bartolomé Zambrana.'
+
+        },
+        text:{
+            alignment:'justify'
+        }
+    }
+    //Create the content.
+    const line = {
+        table:{
+            headerRows:1,
+            widths:[400],
+            body:[
+                [''],['']
+            ]
+        },
+        layout : 'headerLineOnly'
+    }
+    let contentDocument = [{
+        text:'\nLas citas escogidas por los usuarios son las siguientes:\n',
+        style:'text'
+    }];
+    
+    for(appointment of Object.values(dates)){
+        const initHour = Math.floor(appointment.initHour/60);
+        const endHour = Math.floor(appointment.endHour/60);
+        const minutesInit = appointment.initHour - Math.floor(appointment.initHour/60);
+        const minutesEnd = appointment.endHour - Math.floor(appointment.endHour/60);
+
+        contentDocument.push(line);
+        contentDocument.push({
+            text:`${appointment.date.getDate()}-${appointment.date.getMonth()+1}-${appointment.date.getFullYear()}    `+
+            `   ${initHour}:${minutesInit}h - ${endHour}:${minutesEnd}h`+
+            `   ${appointment.idUser.userName} - ${appointment.idUser.email}`,style:'text'
+        })
+
+    }
+
+    const document = {
+        content:contentDocument,
+        styles:stylesDocument
+    }
+
+    const nameFile = dates[0].idService +'.pdf';
+    let pdfDocument = pdfmake.createPdfKitDocument(document,{});
+    const stream = fs.createWriteStream(path.join(__dirname,'../pdfs',nameFile));
+    pdfDocument.pipe(stream);
+
+    pdfDocument.end();
+
+    await new Promise(resolve=>{
+        stream.on('finish',() => {resolve()});
+    });
+
+
+    return nameFile;
+
+}
+
 const uploadCloudinary =  async(req, res) => {
     extensionValidation(req,res); //Verify extensions
     let urls = [];
@@ -100,5 +199,7 @@ module.exports = {
     cleanFiles,
     uploadCloudinary,
     validationFilePost,
-    deleteFileCloudinary
+    deleteFileCloudinary,
+    createPdfDocument,
+    cleanPDF
 }

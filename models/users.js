@@ -18,7 +18,7 @@ const User = Schema({
     },
     type:{
         type:Boolean,
-        required: [true,'The email is obligatory']
+        required: [true,'The type is obligatory']
     },
     followServices: [{
         type:Schema.Types.ObjectId,
@@ -30,12 +30,12 @@ const User = Schema({
     },
     postNotifications:{
         type:Boolean,
-        default: false
+        default: true
     }
 });
 
 User.methods.toJSON = function() {
-    const{ __v,password,_id, ...user} = this.toObject();
+    const{ __v,password,_id,status,postNotifications, ...user} = this.toObject();
     user.uid = _id;
     return user
 }

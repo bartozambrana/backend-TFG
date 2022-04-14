@@ -13,6 +13,8 @@ const router = Router();
 
 router.get('/:idService',[
     jwtValidation,
+    check('idService','invalid').isMongoId().custom(serviceIdValid),
+    fieldsValidation
     
 ],getPosts);
 router.post('/:id',[

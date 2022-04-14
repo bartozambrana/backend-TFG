@@ -63,6 +63,8 @@ const postWork = async(req = request,res = response) => {
 
 }
 
+/* Documented */
+
 const putWork = async(req = request,res = response) => {
     
     const {id} = req.params;
@@ -100,7 +102,6 @@ const putWork = async(req = request,res = response) => {
 
         return res.json({
             success : true,
-            msg:'Work-Updated',
             work: workUpdated
         });
     }
@@ -112,8 +113,9 @@ const putWork = async(req = request,res = response) => {
     
 }
 
+/* Documented */
 const deleteWork = async (req = request,res = response) => {
-    //Verify that the user is the director of the businnes how post the post.
+    //Verify that the user is the director of the businnes how post the work.
     const {id} = req.params;
     const work = await Work.findById(id).populate('idService');
 

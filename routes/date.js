@@ -13,10 +13,11 @@ const {
     putSelectDateUser, 
     putModifyDate, 
     putCancelDate ,
-    putDate
+    putDate,
+    getDatesPDF
 } = require('../controllers/date');
 
-const { serviceIdValid, dateIdValid} = require('../helpers/dbValidators');
+const { serviceIdValid, dateIdValid, validHourFormat} = require('../helpers/dbValidators');
 const dateValidation = require('../middlewares/dateValidation');
 
 /** Global constants **/
@@ -36,13 +37,19 @@ router.get('/:idService',[
     fieldsValidation
 ], getDatesAvaliablesService)
 
+router.get('/asignated/:idService',[
+    jwtValidation,
+    check('idService','invalid').isMongoId().custom(serviceIdValid),
+    check('dateInput','invalid').isDate().notEmpty(),
+    fieldsValidation
+], getDatesAvaliablesService)
 
 // Add a new date from a service.
 router.post('/',[
     jwtValidation,
     check('dateDay','invalid type').isDate().notEmpty(),
-    check('initHour','invalid type').isNumeric().notEmpty(),
-    check('endHour','invalid type').isNumeric().notEmpty(),
+    check('initHour','invalid type').isString().notEmpty().custom(validHourFormat),
+    check('endHour','invalid type').isString().notEmpty().custom(validHourFormat),
     check('idService','invalid').isMongoId().custom(serviceIdValid),
     check('status').optional().isBoolean(),
     fieldsValidation
@@ -54,8 +61,8 @@ router.put('/:id',[
     jwtValidation,
     check('id','invalid').isMongoId().custom(dateIdValid),
     check('date','invalid type').optional().isDate().notEmpty(),
-    check('initHour','invalid type').optional().isNumeric().notEmpty(),
-    check('endHour','invalid type').optional().isNumeric().notEmpty(),
+    check('initHour','invalid type').optional().isString().notEmpty().custom(validHourFormat),
+    check('endHour','invalid type').optional().isString().notEmpty().custom(validHourFormat),
     check('status').optional().isBoolean(),
     dateValidation,
     fieldsValidation
@@ -92,4 +99,13 @@ router.delete('/:id',[
     fieldsValidation
 ], deleteDate);
 
+// Generate a PDF.
+
+router.get('/pdf/:id',[
+    jwtValidation,
+    check('id','invalid').isMongoId().custom(serviceIdValid),
+    check('initDate','invalid date').isDate().notEmpty(),
+    check('endDate','invalid date').isDate().notEmpty(),
+    fieldsValidation
+],getDatesPDF)
 module.exports = router;

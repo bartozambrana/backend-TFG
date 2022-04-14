@@ -5,37 +5,48 @@ const bcryptjs = require('bcryptjs');
 /** Local requirements **/
 const User = require("../models/users");
 const Service = require("../models/services");
+const deleteServiceElements = require('../helpers/deleteService');
 
 
 
 
 const getUser = async(req = request, res = response) =>{
-    const {id} = req.params;
-    if(id == req.uid){ //realiza la petición el mismo que quiere borrarlo.
-        const user = await User.findById(id);
-        const services = await Service.find({idUser:id});
+
+    try{ //realiza la petición el mismo que quiere borrarlo.
+        const user = await User.findById(req.uid);
+        let services = undefined;
+        
+        if(user.type)
+             services = await Service.find({idUser:req.uid});
+        
+        if(services)
+            return res.json({
+                user,
+                success: true
+            });
+        
         res.json({
             user,
             services,
             success: true
         });
-    }else{
-        res.json({
-            msg:`You cannot request a different user to you`,
+        
+    }catch(error){
+        res.status(500).json({
+            msg:`contact with the admin`,
             success: false
         });
     }
     
 }
 
+/* Documented */
 const putUser = async(req = request, res = response) => {
     
-    const {id} = req.params;
-    
-    if(id == req.uid){
-    
-        const {password, ...rest} = req.body;
-        
+
+    const {password,userName, ...rest} = req.body;
+    try {
+
         //if user want to change the password
         if(password){
             const salt = bcryptjs.genSaltSync();
@@ -43,54 +54,73 @@ const putUser = async(req = request, res = response) => {
         }
         
         //update user.
-        await User.findByIdAndUpdate(id,rest)
-    }else{
+        const user = await User.findByIdAndUpdate(req.uid,rest,{new:true})
+    
+
         res.json({
-            success: false,
-            msg: 'You cannot request a different usr to you'
+            success:true,
+            user
         })
+        
+    } catch (error) {
+        res.status(500).json({status:false,msg:'contact with the adming'});
     }
+        
 }
 
+/* Documented */
 const postUser = async(req = request, res = response) => {
     
     
+    try {
+       //Verify fields.
+        const{password, email,userName,type} = req.body;
+
+
+        //Create the user instance
+        const user = new User({userName,email,password,type});
+
+        //Encrypt password.
+        const salt = bcryptjs.genSaltSync();
+        user.password = bcryptjs.hashSync(password,salt)
+
+
+        //Save user in DataBase.
+        await user.save()    
+
+        //Obtenemos la información del body.
+        res.json({
+            success:true,
+            user
+        }) 
+    } catch (error) {
+        res.status(500).json({status:false,msg:'contact with the adming'});
+    }
     
-    //Verify fields.
-    const{password, email,userName,type} = req.body;
-
-
-    //Create the user instance
-    const user = new User({userName,email,password,type});
-
-    //Encrypt password.
-    const salt = bcryptjs.genSaltSync();
-    user.password = bcryptjs.hashSync(password,salt)
-
-
-    //Save user in DataBase.
-    await user.save()    
-
-    //Obtenemos la información del body.
-    res.json({
-        user
-    })
 }
 
+/* Documented */
 const deleteUser = async(req = request, res = response) => {
-    const {id} = req.params;
-    if(id == req.uid){ //realiza la petición el mismo que quiere borrarlo.
-        await User.findByIdAndUpdate(id,{status:false});
+
+    try {
+        //realiza la petición el mismo que quiere borrarlo.
+        const user = await User.findByIdAndUpdate(req.uid,{status:false});
+        
+        if(user.type){
+            const services = await Service.find({idUser:user.id});
+            for(const service of Object.values(services))
+                await deleteServiceElements(Service.id);
+        }
+
         res.json({
-            msg:`user with ${id} deleted`,
+            msg:`user with ${req.uid} deleted`,
             success: true
         });
-    }else{
-        res.json({
-            msg:`user with ${id} not deleted`,
-            success: false
-        });
+    } catch (error) {
+        res.status(500).json({msg:'contact with admin',success:false});
     }
+    
+
 
 }
 

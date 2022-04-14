@@ -106,7 +106,8 @@ const postPost = async (req = request, res = response)=>{
         const users = await User.find({
             followServices:{
                 $in :[idService]
-            }
+            },
+            postNotifications:true
         }).select('email -_id');
 
         const toEmail = users.map((user)=>{return user.email});

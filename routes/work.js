@@ -28,6 +28,7 @@ router.put('/:id',[
     jwtValidation,
     check('id','id tienes que ser un id de mongo').isMongoId().custom(workIdValid),
     check('description',' invalid').optional().isString().notEmpty(),
+    check('deletedFiles','invalid').optional().isString(),
     fieldsValidation
 ],putWork);
 

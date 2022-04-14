@@ -37,11 +37,15 @@ const Service = Schema({
        type: Schema.Types.ObjectId,
        required: true,
        ref: 'User'
+   },
+   status:{
+       type:Boolean,
+       default:true
    } 
 }); 
 
 Service.methods.toJSON = function() {
-    const{ __v,_id, ...service} = this.toObject();
+    const{ __v,_id,status, ...service} = this.toObject();
     service.uid = _id
     return service;
 }

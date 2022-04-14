@@ -6,12 +6,19 @@ const Dates = require('../models/dates');
 const Comments = require('../models/Comments');
 const ReplyComment = require('../models/ReplyComment');
 
+const validHourFormat = (hour)=>{
+    const hourRegExp = /^[0-9]{2}\:[0-9]{2}$/
+    if(!hourRegExp.test(hour))
+        throw new Error('The hour format is <number><number>:<number><number>');
+    const hours = hour.split(":");
+    if(parseInt(hours[0]) > 24)
+        throw new Error('First 2 digits have to be less or equal to 24');
+    if(parseInt(hours[1]>59))
+        throw new Error('Last 2 digits have to be less than 60');
+}
 const userIdValid = async(idUser) => {
-    if(idUser != req.uid){
-        throw new Error('You sent a different uid than yours')
-    }
-    
-    const userExists = await User.findOne({id:idUser});
+
+    const userExists = await User.findOne({id:idUser,status:true});
     if(!userExists){
         throw new Error(`Service with id: ${id} not exists`);
     }
@@ -92,6 +99,13 @@ const replyIdValid = async(id) => {
     }
 }
 
+const categoryValid = async(category) => {
+    const validCategories = ['eletrónica','mecánica','auditoría-asesoría','aseguradoras',"peluquería",'dentistas']
+
+    if(!validCategories.includes(category)){
+        throw new Error(`Category not valid, avaliables categories ${validCategories}`);
+    }
+}
 module.exports = {
     userNameValid,
     emailValid,
@@ -103,5 +117,7 @@ module.exports = {
     userIdValid,
     isUserOrService,
     commentIdValid,
-    replyIdValid
+    replyIdValid,
+    categoryValid,
+    validHourFormat
 }

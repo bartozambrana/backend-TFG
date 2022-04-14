@@ -4,19 +4,21 @@ const {check} = require('express-validator');
 
 /** Local requirements **/
 const {getUser,putUser,postUser,deleteUser} = require('../controllers/user');
-const { emailValid, userNameValid } = require('../helpers/dbValidators');
+const { emailValid, userNameValid, userIdValid } = require('../helpers/dbValidators');
 const { fieldsValidation } = require('../middlewares/fieldsValidation');
 const jwtValidation = require('../middlewares/jwtValidation');
 
 const router = Router();
 
-router.get('/:id',[
-    jwtValidation,
-    check('id','No es un ID válido').isMongoId()
+router.get('/',[
+    jwtValidation
 ], getUser);      //Obtain the user information.
-router.put('/:id',[
+router.put('/',[
     jwtValidation,
-    check('id','No es un ID válido').isMongoId()
+    check('email','invalid').optional().isEmail().notEmpty(),
+    check('type','invalid').optional().isBoolean(),
+    check('password','invalid').optional().isString().notEmpty(),
+    fieldsValidation
 ], putUser);      //Update user :id.
 
 // New user
@@ -30,9 +32,8 @@ router.post('/',[
     fieldsValidation
 ],postUser);        //New user.
 
-router.delete('/:id',[
-    jwtValidation,
-    check('id','No es un ID válido').isMongoId()
+router.delete('/',[
+    jwtValidation
 ],deleteUser); //Delete user :id.
 
 module.exports = router;
