@@ -154,11 +154,11 @@ const sendMultipleEmails = async({subject,toEmail,text,header}) => {
 }
 
 const sendDatesBussinessMan = async({toEmail,nameFile}) => {
-  console.log(toEmail);
+
   const pathToAttachment = path.join(__dirname,'../pdfs',nameFile);
 
   sendGridMail.setApiKey(process.env.SENDGRID_API_KEY);
-  console.log("path to attachment: " , pathToAttachment);
+
   const attachment = fs.readFileSync(pathToAttachment).toString("base64");
 
   const mensaje = {

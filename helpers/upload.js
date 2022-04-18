@@ -7,44 +7,51 @@ const { response, request } = require('express');
 const { v4: uuidv4 } = require('uuid');
 
 const PdfPrinter = require('pdfmake');
+const { integerToHour } = require('./houtToInteger');
+
 
 
 const cloudinary = require('cloudinary').v2
 cloudinary.config(process.env.CLOUDINARY_URL)
 
-const extensionValidation = (req, res = response) => {
-    if (!req.files || Object.keys(req.files).length ===0) {
-        return res.status(400).json({ msg: 'No image to upload',success:false });
-
-    }
-
-    let extension = '';
-    const validExtensions = ['png','jpg', 'jpeg', 'gif'];
-    let error = false;
-    Object.entries(req.files).map((entry) => {
-        file = entry[1];
-        extension = file.name.split('.').pop();
-        if (!validExtensions.includes(extension)) {
-            error = true;
+const extensionValidation = (req) => {
+    return new Promise((resolve,reject) => {
+        if (!req.files || Object.keys(req.files).length ===0) {
+            return reject('No image to upload');
+    
         }
+    
+        let extension = '';
+        const validExtensions = ['png','jpg', 'jpeg', 'gif'];
+        let error = false;
+        Object.entries(req.files).map((entry) => {
+            file = entry[1];
+            extension = file.name.split('.').pop();
+            if (!validExtensions.includes(extension)) {
+                error = true;
+            }
+        })
+    
+        if (error) {
+            return reject(
+                `extensions files ${extension} is invalid, valid extensions: ${validExtensions}`);
+        }
+
+        resolve(true);
     })
-
-    if (error) {
-        return res.status(400).json({
-            msg: `extensions files ${extension} is invalid, valid extensions: ${validExtensions}`,
-            success:false
-        });
-    }
-
 }
 
-const validationFilePost = (req,res) => {
-    if (!req.files || Object.keys(req.files).length != 1) {
-        return res.status(400).json({ 
-            msg: 'you only can upload one picture',
-            success:false
-        });
-    }
+const filePostValidation = (req) => {
+    return new Promise((resolve,reject) => {
+        if (!req.files || Object.keys(req.files).length != 1) {
+            return reject(
+                'you only can upload one picture'
+            );
+        }
+        resolve(true);
+    })
+    
+    
 }
 
 const loadFiles = (req = request, res = response) => {
@@ -89,6 +96,7 @@ const cleanPDF = (nameFile) => {
 
 
 }
+
 
 const createPdfDocument = async(dates) => {
 
@@ -140,15 +148,11 @@ const createPdfDocument = async(dates) => {
     }];
     
     for(appointment of Object.values(dates)){
-        const initHour = Math.floor(appointment.initHour/60);
-        const endHour = Math.floor(appointment.endHour/60);
-        const minutesInit = appointment.initHour - Math.floor(appointment.initHour/60);
-        const minutesEnd = appointment.endHour - Math.floor(appointment.endHour/60);
-
+        
         contentDocument.push(line);
         contentDocument.push({
             text:`${appointment.date.getDate()}-${appointment.date.getMonth()+1}-${appointment.date.getFullYear()}    `+
-            `   ${initHour}:${minutesInit}h - ${endHour}:${minutesEnd}h`+
+            `   ${integerToHour(appointment.initHour)} - ${integerToHour(appointment.endHour)}`+
             `   ${appointment.idUser.userName} - ${appointment.idUser.email}`,style:'text'
         })
 
@@ -176,7 +180,7 @@ const createPdfDocument = async(dates) => {
 }
 
 const uploadCloudinary =  async(req, res) => {
-    extensionValidation(req,res); //Verify extensions
+    
     let urls = [];
     for(const file of Object.values(req.files)){
         const {secure_url} = await cloudinary.uploader.upload(file.tempFilePath);
@@ -198,8 +202,9 @@ module.exports = {
     loadFiles,
     cleanFiles,
     uploadCloudinary,
-    validationFilePost,
+    extensionValidation,
     deleteFileCloudinary,
     createPdfDocument,
+    filePostValidation,
     cleanPDF
 }

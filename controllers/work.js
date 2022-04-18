@@ -5,138 +5,169 @@ const {request, response} = require('express');
 const Work = require('../models/works');
 const Service = require('../models/services');
 const User = require('../models/users');
-const {uploadCloudinary,deleteFileCloudinary} = require('../helpers/upload');
+const { sendMultipleEmails } = require('../helpers/sendEmail');
+const {uploadCloudinary,deleteFileCloudinary,extensionValidation} = require('../helpers/upload');
 
 
 const getWorks = async(req = request,res = response) => {
-    const {idService} = req.params;
-    const works = await Work.find({idService})
-    res.json({
-        success:true,
-        works
-    })
+    try {
+        const {idService} = req.params;
+        const works = await Work.find({idService})
+        res.json({
+            success:true,
+            works
+        })
+    } catch (error) {
+        res.status(400).json({success:false,msg:'Contact with the admin'});
+    }
+    
+    
 }
 
 const postWork = async(req = request,res = response) => {
-     
-    //Verify fields.
-    const {id:idService} = req.params;
-    const {description} = req.body;
+    try {
+        //Verify fields.
+        const {id:idService} = req.params;
+        const {description} = req.body;
 
-    //Verify that the user is the director of the businnes.
-    const correct = await Service.findOne({_id:idService,idUser:req.uid});
+        //Verify that the user is the director of the businnes.
+        const correct = await Service.findOne({_id:idService,idUser:req.uid});
 
-    if(correct){
-        //Upload the photo.
-        const urls = await uploadCloudinary(req,res);
-        
-        //Save post
-        const work = new Work({photos:urls,description,idService});
-
-        await work.save();
-
-        //Send Emails to Users than follow this service.
-        const users = await User.find({
-            followServices:{
-                $in :[idService]
+        if(correct){
+            try {
+                await extensionValidation(req)
+            } catch (error) {
+                return res.status(400).json({success:false,msg:error})
             }
-        }).select('email -_id');
+            //Upload the photo.
+            const urls = await uploadCloudinary(req,res);
+            
+            //Save post
+            const work = new Work({photos:urls,description,idService});
 
-        const toEmail = users.map((user)=>{return user.email});
+            await work.save();
 
-        sendMultipleEmails({
-            subject: `Nuevo trabajo del servicio ${correct.serviceName}`,
-            toEmail: toEmail,
-            text: `El servicio ${correct.serviceName} ha establecido un post que te puede interesar`,
-            header: 'Nuevo Trabajo'
+            //Send Emails to Users than follow this service.
+            const users = await User.find({
+                followServices:{
+                    $in :[idService]
+                }
+            }).select('email -_id');
+
+            const toEmail = users.map((user)=>{return user.email});
+
+            sendMultipleEmails({
+                subject: `Nuevo trabajo del servicio ${correct.serviceName}`,
+                toEmail: toEmail,
+                text: `El servicio ${correct.serviceName} ha establecido un post que te puede interesar`,
+                header: 'Nuevo Trabajo'
+            })
+            return res.json({
+                success: true,
+                msg:'Work upload'
+            });
+        }
+
+        res.status(400).json({
+            success: false,
+            msg:'the user is not the bussiness owner'
         })
-        return res.json({
-            success: true,
-            msg:'Work upload'
-        });
+    } catch (error) {
+        console.log(error)
+        res.status(400).json({success:false,msg:'Contact with the admin'});
     }
-
-    res.status(400).json({
-        success: false,
-        msg:'the user is not the bussiness owner'
-    })
+    
 
 }
 
 /* Documented */
 
 const putWork = async(req = request,res = response) => {
-    
-    const {id} = req.params;
-    const work = await Work.findById(id).populate('idService');
+    try {
+        const {id} = req.params;
+        const work = await Work.findById(id).populate('idService');
 
-    if(work && (work.idService.idUser == req.uid)){
-        const {deletedFiles} = req.body;
-        let workUpdated = '';
+        if(work && (work.idService.idUser == req.uid)){
+            const {deletedFiles} = req.body;
+            let workUpdated = '';
 
-        if(deletedFiles){
-            const documents = deletedFiles.split(';');
+            if(deletedFiles){
+                const documents = deletedFiles.split(';');
 
-            workUpdated = await Work.findByIdAndUpdate(id,{
-                $pull: {"photos" : {$in:documents}}
-            },{new:true});
+                workUpdated = await Work.findByIdAndUpdate(id,{
+                    $pull: {"photos" : {$in:documents}}
+                },{new:true});
 
-            for(photo of documents){
-                deleteFileCloudinary(photo);
+                for(photo of documents){
+                    deleteFileCloudinary(photo);
+                }
             }
+
+            //If we receipt one or more new file.
+            if(req.files && (Object.keys(req.files).length != 0)){
+                try {
+                    await extensionValidation(req)
+                } catch (error) {
+                    return res.status(400).json({success:false,msg:error})
+                }
+                const urls = await uploadCloudinary(req,res)
+                // update the object.
+                workUpdated = await Work.findByIdAndUpdate(id,{
+                    $push:{"photos":{$each : urls}}
+                },{new: true});
+            }
+            
+            const{description} = req.body;
+            if(description){
+                workUpdated = await Work.findByIdAndUpdate(id,{description},{new:true});
+            }
+
+            return res.json({
+                success : true,
+                work: workUpdated
+            });
         }
 
-        //If we receipt one or more new file.
-        if(req.files && (Object.keys(req.files).length != 0)){
-            const urls = await uploadCloudinary(req,res)
-            // update the object.
-            workUpdated = await Work.findByIdAndUpdate(id,{
-                $push:{"photos":{$each : urls}}
-            },{new: true});
-        }
-        
-        const{description} = req.body;
-        if(description){
-            workUpdated = await Work.findByIdAndUpdate(id,{description},{new:true});
-        }
-
-        return res.json({
-            success : true,
-            work: workUpdated
-        });
+        res.status(400).json({
+            success:false,
+            msg:'The user is not the owner'
+        })
+    } catch (error) {
+        res.status(400).json({success:false,msg:'Contact with the admin'});
     }
-
-    res.status(400).json({
-        success:false,
-        msg:'The user is not the owner'
-    })
+    
     
 }
 
 /* Documented */
 const deleteWork = async (req = request,res = response) => {
-    //Verify that the user is the director of the businnes how post the work.
-    const {id} = req.params;
-    const work = await Work.findById(id).populate('idService');
+    try {
+        //Verify that the user is the director of the businnes how post the work.
+        const {id} = req.params;
+        const work = await Work.findById(id).populate('idService');
 
-    if(work && (work.idService.idUser == req.uid)){
-        for(photo of work.photos){
-            deleteFileCloudinary(photo);
-        }
+        if(work && (work.idService.idUser == req.uid)){
+            for(photo of work.photos){
+                deleteFileCloudinary(photo);
+            }
+            
+            //we only update the fields of the body request 
+            await Work.findByIdAndDelete(id);
         
-        //we only update the fields of the body request 
-        await Work.findByIdAndDelete(id);
-       
-        return res.json({
-            success:true,
-            msg:'work deleted'
-        });
-    }
+            return res.json({
+                success:true,
+                msg:'work deleted'
+            });
+        }
 
-    res.json({
-        success:false,
-        msg:"The user is not the bussiness director or id Invalid"
-    });
+        res.json({
+            success:false,
+            msg:"The user is not the bussiness director or id Invalid"
+        });
+    } catch (error) {
+        res.status(400).json({success:false,msg:'Contact with the admin'});
+    }
+    
 }
 
 module.exports = {

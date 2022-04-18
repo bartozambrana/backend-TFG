@@ -8,6 +8,7 @@ const jwtValidation= require('../middlewares/jwtValidation')
 const { 
     getAllDatesUser, 
     getDatesAvaliablesService, 
+    getAsignedDates,
     postDate, 
     deleteDate, 
     putSelectDateUser, 
@@ -25,8 +26,7 @@ const router = Router();
 
 // All dates of a user.
 router.get('/',[
-    jwtValidation,
-    fieldsValidation
+    jwtValidation
 ], getAllDatesUser );
 
 // All dates avaliable for a bussiness for a day in a month and year
@@ -42,7 +42,7 @@ router.get('/asignated/:idService',[
     check('idService','invalid').isMongoId().custom(serviceIdValid),
     check('dateInput','invalid').isDate().notEmpty(),
     fieldsValidation
-], getDatesAvaliablesService)
+], getAsignedDates)
 
 // Add a new date from a service.
 router.post('/',[

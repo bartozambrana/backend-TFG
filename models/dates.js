@@ -1,4 +1,5 @@
 const {Schema,model} = require('mongoose');
+const { integerToHour } = require('../helpers/houtToInteger');
 
 
 const Dates = Schema({
@@ -32,9 +33,14 @@ const Dates = Schema({
     }
 }); 
 
+
+
 Dates.methods.toJSON = function() {
-    const{ __v,_id, ...date} = this.toObject();
+    const{ __v,_id,initHour,endHour, ...date} = this.toObject();
+    date.initHour = integerToHour(initHour);
+    date.endHour = integerToHour(endHour);
     date.uid = _id
+    
     return date;
 }
 

@@ -5,7 +5,7 @@ const {request, response} = require('express');
 const Service = require('../models/services');
 const Dates = require('../models/dates');
 const User = require('../models/users');
-const { findById, findByIdAndUpdate, updateMany } = require('../models/services');
+
 const { sendIndividualEmail, sendDatesBussinessMan } = require('../helpers/sendEmail');
 const { createPdfDocument, cleanPDF } = require('../helpers/upload');
 const path = require('path')
@@ -20,6 +20,8 @@ const hourToInteger = (hour) => {
     const elements = hour.split(":");
     return( (parseInt(elements[0])*60) + 60);
 }
+
+
 /* Documented */
 const getAllDatesUser = async(req = request, res = response) =>{
     try{
@@ -232,10 +234,12 @@ const getDatesPDF = async(req = request, res = response) => {
     const filePath = path.join(__dirname,'../pdfs',nameFile);
     const toEmail = service.idUser.email;
 
-    //await sendDatesBussinessMan({toEmail,nameFile});
-    res.download(filePath,()=>{
-        cleanPDF(nameFile);
-    });
+    await sendDatesBussinessMan({toEmail,nameFile});
+    cleanPDF(nameFile);
+    res.json({
+        success:true,
+        msg:'Dates send by email'
+    })
 
 }
 
@@ -271,5 +275,6 @@ module.exports = {
     putDate,
     deleteDate,
     getAsignedDates,
-    getDatesPDF
+    getDatesPDF,
+    postValorationDate
 }

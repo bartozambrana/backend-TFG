@@ -22,7 +22,7 @@ const User = Schema({
     },
     followServices: [{
         type:Schema.Types.ObjectId,
-        ref:'Services'
+        ref:'Service'
     }],
     status:{
         type:Boolean,

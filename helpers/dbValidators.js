@@ -6,7 +6,7 @@ const Dates = require('../models/dates');
 const Comments = require('../models/Comments');
 const ReplyComment = require('../models/ReplyComment');
 
-const validHourFormat = (hour)=>{
+const validHourFormat = async(hour)=>{
     const hourRegExp = /^[0-9]{2}\:[0-9]{2}$/
     if(!hourRegExp.test(hour))
         throw new Error('The hour format is <number><number>:<number><number>');
