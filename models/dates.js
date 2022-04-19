@@ -1,5 +1,5 @@
 const {Schema,model} = require('mongoose');
-const { integerToHour } = require('../helpers/houtToInteger');
+const { integerToHour } = require('../helpers/hourToInteger');
 
 
 const Dates = Schema({

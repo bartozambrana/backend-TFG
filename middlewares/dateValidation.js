@@ -5,9 +5,9 @@ const dateValidation = async(req, res, next) => {
     const {idOldDate} = req.body;
     try {
         if(idOldDate){
-            const dateExists = await Dates.findById(idOldDate);
+            const dateExists = await Dates.findOne({id:idOldDate,idUser:req.uid});
             if(!dateExists){
-                return res.status(400).json({success:false,msg:'Old Appointment do not exists'});
+                return res.status(400).json({success:false,msg:'Old Appointment do not exists or you are not the apointment owner'});
             }
         }
         //Obtain all information about date id.

@@ -7,7 +7,7 @@ const { response, request } = require('express');
 const { v4: uuidv4 } = require('uuid');
 
 const PdfPrinter = require('pdfmake');
-const { integerToHour } = require('./houtToInteger');
+const { integerToHour } = require('./hourToInteger');
 
 
 

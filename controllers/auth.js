@@ -12,6 +12,8 @@ const login = async(req = request, res = response)=>{
     try{
         //Verify if user exists
         const user = await User.findOne({email}).populate({path:'followServices',select:'serviceName'});
+
+ 
         if(!user){
             return res.status(400).json({
                 success:false,

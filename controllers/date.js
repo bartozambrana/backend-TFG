@@ -18,7 +18,7 @@ const fs = require('fs')
 //All dates of a user.
 const hourToInteger = (hour) => {
     const elements = hour.split(":");
-    return( (parseInt(elements[0])*60) + 60);
+    return( (parseInt(elements[0])*60) + parseInt(elements[1]));
 }
 
 
@@ -72,8 +72,12 @@ const getAsignedDates = async(req=request, res = response) => {
 
 /* Documented */
 const postDate = async(req = request, res = response) =>{
-    const {dateDay, initHour, endHour,status,idService} = req.body;
+    
     try {
+        const {dateDay,status,idService} = req.body;
+        let {initHour,endHour} = req.body;
+    
+        //Create correct hour format to save it.
         initHour = hourToInteger(initHour);
         endHour = hourToInteger(endHour);
 
@@ -105,29 +109,45 @@ const postDate = async(req = request, res = response) =>{
         res.json({success:true, date:newDate});
 
     } catch (error) {
+        console.log(error);
         res.status(500).json({success:false, msg:'contact with the admin'});
     }
 }
 
 const putDate = async(req = request, res = response) =>{
-    const {id} = req.params;
-    const {idService,idUser,initHour,endHour, ...rest} = req.body;
+    
     try {
-        
-
+        const {id} = req.params;
         const service = await Dates.findById(id).populate('idService');
         if(service.idService.idUser != req.uid){
             return res.status(400).json({success:false,msg:'the user is not the owner service'});
         }
         
-        initHour = hourToInteger(initHour);
-        endHour = hourToInteger(endHour);
-        rest.initHour = initHour;
-        res.endHour = endHour;
+        
+        const {idService} = req.body;
+        let {initHour,endHour, ...rest} = req.body;
+
+        if(initHour){
+            initHour = hourToInteger(initHour);
+            rest.initHour = initHour;
+        }
+        
+
+        if(endHour){
+            endHour = hourToInteger(endHour);
+            rest.endHour = endHour;
+
+        }
+
+        if(rest.date){
+            rest.date = new Date(res.date);
+        }
+        
 
         const dateUpdated = await Dates.findByIdAndUpdate(id,rest,{new:true})
         res.json({success:true,date:dateUpdated});
     } catch (error) {
+
         res.status(500).json({success:false,msg:'contact with the admin'});
     }
 }
@@ -136,7 +156,7 @@ const putSelectDateUser = async(req = request, res=response) => {
     const {id} = req.params;
     try {
         //Select date.
-        const dateUpdated = await Dates.findByIdAndUpdate(id,{status:false,idUser:req.uid},{new:true}).populate('idUser');
+        const dateUpdated = await Dates.findByIdAndUpdate(id,{status:false,idUser:req.uid},{new:true});
         //Async email send.
         sendIndividualEmail({
             subject:'Cita Seleccionada',
@@ -160,7 +180,7 @@ const putModifyDate = async(req = request, res = response) =>{
         //liberamos la cita anterior, puede realizarse asíncrono.
         await Dates.findByIdAndUpdate(idOldDate,{status:true,$unset:{idUser:""}});
         //Establecemos nueva cita.
-        const dateUpdated =  await Dates.findByIdAndUpdate(id,{status:false, idUser: req.uid},{new:true}).populate('idUser');
+        const dateUpdated =  await Dates.findByIdAndUpdate(id,{status:false, idUser: req.uid},{new:true});
         //Async email send.
         sendIndividualEmail({
             subject:'Cita Modificada',
@@ -180,7 +200,7 @@ const putCancelDate = async(req = request, res = response) => {
     const {id} = req.params;
     
     try {
-        const date = Dates.findById(id).populate('idService');
+        const date = await Dates.findById(id).populate('idService');
         if((date.idUser == req.uid) || (date.idService.idUser == req.uid)){
             const dateUpdated = await Dates.findByIdAndUpdate(id,{status:true,$unset:{idUser:""}});
             const user = await User.findById(dateUpdated.idUser);
@@ -195,6 +215,7 @@ const putCancelDate = async(req = request, res = response) => {
         }
         return res.status(500).json({success:false, msg:'you are not the owner of that appointment'});
     } catch (error) {
+        console.log(error)
         res.status(500).json({success:false,msg:'contact with the admin'});
     }
 }
@@ -204,8 +225,12 @@ const putCancelDate = async(req = request, res = response) => {
 const deleteDate = async(req = request, res = response) =>{
     const {id} = req.params;
     try {
-        await Dates.findByIdAndDelete(id);
-        res.json({success:true, msg:'Date deleted.'})
+        const date = await Dates.findById(id).populate('idService');
+        if(date.idService.idUser == req.uid){
+            await Dates.findByIdAndDelete(id);
+            return res.json({success:true, msg:'Date deleted.'})
+        }
+        res.status(500).json({success:false, msg:'you are not bussiness man'});
     } catch (error) {
         res.status(500).json({success:false,msg:'contact with the admin'});
     }
