@@ -230,7 +230,8 @@ const deleteDate = async(req = request, res = response) =>{
             await Dates.findByIdAndDelete(id);
             return res.json({success:true, msg:'Date deleted.'})
         }
-        res.status(500).json({success:false, msg:'you are not bussiness man'});
+
+        return res.status(500).json({success:false, msg:'you are not the owner bussiness'})
     } catch (error) {
         res.status(500).json({success:false,msg:'contact with the admin'});
     }

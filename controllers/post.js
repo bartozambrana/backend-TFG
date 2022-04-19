@@ -143,12 +143,17 @@ const postPost = async (req = request, res = response)=>{
 
             const toEmail = users.map((user)=>{return user.email});
 
-            sendMultipleEmails({
-                subject: `Nuevo post del servicio ${correct.serviceName}`,
-                toEmail: toEmail,
-                text: `El servicio ${correct.serviceName} ha establecido un post que te puede interesar`,
-                header: 'Nuevo POST'
-            })
+            if(toEmail.length != 0){
+                sendMultipleEmails({
+                    subject: `Nuevo post del servicio ${correct.serviceName}`,
+                    toEmail: toEmail,
+                    text: `El servicio ${correct.serviceName} ha establecido un post que te puede interesar`,
+                    header: 'Nuevo POST'
+                })
+            }
+            
+
+            
             return res.json({
                 success: true,
                 msg:'Post upload'
