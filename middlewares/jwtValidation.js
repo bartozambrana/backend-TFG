@@ -4,6 +4,7 @@ const jwtValidation = (req, res, next) =>{
     const token = req.header('token');
     if(!token){
         return res.status(401).json({
+            success:false,
             msg:'token empty'
         });
     }
@@ -16,6 +17,7 @@ const jwtValidation = (req, res, next) =>{
         next();
     } catch (error) {
         return res.status(401).json({
+            success:false,
             msg:'token invalid'
         });
     }

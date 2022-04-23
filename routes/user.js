@@ -23,12 +23,10 @@ router.put('/',[
 
 // New user
 router.post('/',[
-    check('email','email not valid').isEmail().notEmpty(),
-    check('userName','user name invalid').isString().notEmpty(),
+    check('email','email not valid').isEmail().notEmpty().custom(emailValid),
+    check('userName','user name invalid').isString().notEmpty().custom(userNameValid),
     check('password','password invalid').isString().notEmpty(),
     check('type','type invalid').isBoolean().notEmpty(),
-    check('email').custom(emailValid),
-    check('userName').custom(userNameValid),
     fieldsValidation
 ],postUser);        //New user.
 
