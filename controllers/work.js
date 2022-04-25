@@ -89,22 +89,10 @@ const putWork = async(req = request,res = response) => {
     try {
         const {id} = req.params;
         const work = await Work.findById(id).populate('idService');
-
+        const photos = work.photos;
         if(work && (work.idService.idUser == req.uid)){
             const {deletedFiles} = req.body;
             let workUpdated = '';
-
-            if(deletedFiles){
-                const documents = deletedFiles.split(';');
-
-                workUpdated = await Work.findByIdAndUpdate(id,{
-                    $pull: {"photos" : {$in:documents}}
-                },{new:true});
-
-                for(photo of documents){
-                    deleteFileCloudinary(photo);
-                }
-            }
 
             //If we receipt one or more new file.
             if(req.files && (Object.keys(req.files).length != 0)){
@@ -119,6 +107,27 @@ const putWork = async(req = request,res = response) => {
                     $push:{"photos":{$each : urls}}
                 },{new: true});
             }
+
+            if(deletedFiles){
+                const documents = deletedFiles.split(';');
+                
+                if((photos.length == documents.length) && !req.files ){
+                    return res.status(400).json({
+                        msg:'At least the work need a photo',
+                        success:false
+                    })
+                }
+
+                workUpdated = await Work.findByIdAndUpdate(id,{
+                    $pull: {"photos" : {$in:documents}}
+                },{new:true});
+                
+                for(photo of documents){
+                    deleteFileCloudinary(photo);
+                }
+            }
+
+            
             
             const{description} = req.body;
             if(description){
@@ -165,7 +174,7 @@ const deleteWork = async (req = request,res = response) => {
 
         res.json({
             success:false,
-            msg:"The user is not the bussiness director or id Invalid"
+            msg:"The user is not the bussiness director"
         });
     } catch (error) {
         res.status(400).json({success:false,msg:'Contact with the admin'});

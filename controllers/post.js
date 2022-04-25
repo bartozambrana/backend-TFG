@@ -96,10 +96,10 @@ const deletePost = async(req = request, res = response) =>{
 
         res.json({
             success:false,
-            msg:"The user is not the bussiness director or id Invalid"
+            msg:"The user is not the bussiness director"
         });
     } catch (error) {
-        res.status(400).json({success:false,msg:'Contact with the admin'});
+        res.status(500).json({success:false,msg:'Contact with the admin'});
     }
     
 }

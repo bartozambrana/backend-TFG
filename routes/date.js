@@ -64,7 +64,6 @@ router.put('/:id',[
     check('initHour','invalid type').optional().isString().notEmpty().custom(validHourFormat),
     check('endHour','invalid type').optional().isString().notEmpty().custom(validHourFormat),
     check('status').optional().isBoolean(),
-    dateValidation,
     fieldsValidation
 ], putDate);
 

@@ -30,7 +30,6 @@ router.put('/:id',[
     check('id','id tienes que ser un id de mongo').isMongoId().custom(postIdValid),
     check('caption',' string no vacío').optional().isString().notEmpty(),
     check('description',' invalid').optional().isString().notEmpty(),
-    check('idService',' invalid').isMongoId().notEmpty().custom(serviceIdValid),
     fieldsValidation
 ],putPost);
 

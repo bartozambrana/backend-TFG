@@ -13,7 +13,7 @@ const validHourFormat = async(hour)=>{
     const hours = hour.split(":");
     if(parseInt(hours[0]) > 24)
         throw new Error('First 2 digits have to be less or equal to 24');
-    if(parseInt(hours[1]>59))
+    if(parseInt(hours[1])>59)
         throw new Error('Last 2 digits have to be less than 60');
 }
 const userIdValid = async(idUser) => {

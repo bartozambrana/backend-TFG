@@ -89,10 +89,10 @@ const postDate = async(req = request, res = response) =>{
             });
         }
         //Verify that the user is the owner of the bussiness
-        const service = await Service.findOne({id:idService, idUser: req.uid});
-        if(!service){
+        const service = await Service.findById(idService);
+        if(service.idUser != req.uid){
             return res.status(400).json({
-                msg:'That service does not exist for that user',
+                msg:'User is not the onwer',
                 success:false
             });
         }
@@ -123,18 +123,24 @@ const putDate = async(req = request, res = response) =>{
             return res.status(400).json({success:false,msg:'the user is not the owner service'});
         }
         
+        if(!service.status){
+            return res.status(400).json({success:false,msg:'the appointment is assigned, you cannot update it now'});
+        }
         
-        const {idService} = req.body;
         let {initHour,endHour, ...rest} = req.body;
-
         if(initHour){
             initHour = hourToInteger(initHour);
+            if(initHour > service.endHour)
+                return res.status(400).json({success:false,msg:'initHour > endHour'});
+            
             rest.initHour = initHour;
         }
         
-
         if(endHour){
             endHour = hourToInteger(endHour);
+            if(endHour < service.initHour)
+                return res.status(400).json({success:false,msg:'endHour < initHour'});
+            
             rest.endHour = endHour;
 
         }
@@ -147,7 +153,7 @@ const putDate = async(req = request, res = response) =>{
         const dateUpdated = await Dates.findByIdAndUpdate(id,rest,{new:true})
         res.json({success:true,date:dateUpdated});
     } catch (error) {
-
+        console.log(error);
         res.status(500).json({success:false,msg:'contact with the admin'});
     }
 }
@@ -156,7 +162,7 @@ const putSelectDateUser = async(req = request, res=response) => {
     const {id} = req.params;
     try {
         //Select date.
-        const dateUpdated = await Dates.findByIdAndUpdate(id,{status:false,idUser:req.uid},{new:true});
+        const dateUpdated = await Dates.findByIdAndUpdate(id,{status:false,idUser:req.uid},{new:true}).populate('idUser');
         //Async email send.
         sendIndividualEmail({
             subject:'Cita Seleccionada',
@@ -164,6 +170,8 @@ const putSelectDateUser = async(req = request, res=response) => {
             text: `Se ha establecido su cita para el día, ${dateUpdated.date.getDate()}-${dateUpdated.date.getMonth()+1}-${dateUpdated.date.getFullYear()}`,
             header:'Notificación de selección de cita'
         });
+        delete dateUpdated.idUser;
+        dateUpdated.idUser = req.uid;
         res.json({success:true,date:dateUpdated});
         
     } catch (error) {
@@ -180,7 +188,7 @@ const putModifyDate = async(req = request, res = response) =>{
         //liberamos la cita anterior, puede realizarse asíncrono.
         await Dates.findByIdAndUpdate(idOldDate,{status:true,$unset:{idUser:""}});
         //Establecemos nueva cita.
-        const dateUpdated =  await Dates.findByIdAndUpdate(id,{status:false, idUser: req.uid},{new:true});
+        const dateUpdated =  await Dates.findByIdAndUpdate(id,{status:false, idUser: req.uid},{new:true}).populate('idUser');
         //Async email send.
         sendIndividualEmail({
             subject:'Cita Modificada',
@@ -189,6 +197,8 @@ const putModifyDate = async(req = request, res = response) =>{
             header:'Notificación de modificación de cita'
         });
 
+        delete dateUpdated.idUser;
+        dateUpdated.idUser = req.uid;
         res.json({success:true,date:dateUpdated});
     } catch (error) {
         res.status(500).json({success:false,msg:'contact with the admin'});
@@ -213,7 +223,7 @@ const putCancelDate = async(req = request, res = response) => {
             });
             return res.json({success:true, msg:'Date cancelled.'})
         }
-        return res.status(500).json({success:false, msg:'you are not the owner of that appointment'});
+        return res.status(400).json({success:false, msg:'you are not the owner of that appointment'});
     } catch (error) {
         console.log(error)
         res.status(500).json({success:false,msg:'contact with the admin'});

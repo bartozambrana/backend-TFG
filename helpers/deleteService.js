@@ -29,8 +29,12 @@ const deleteServiceElements = async(id) =>{
     }
 
     //Delete Appointments
-    const dateList = await Dates.find({idService:id}).update({status:false});
+    await Dates.find({idService:id}).update({status:false});
 
+    //Delete Service in followServices Users.
+    await User.find({
+        $pull: {followServices: id}
+    });
 
 }
 
