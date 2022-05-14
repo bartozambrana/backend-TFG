@@ -3,7 +3,7 @@ const {Router} = require('express');
 const {check} = require('express-validator');
 
 /** Local requirements **/
-const {getService,putService,postService,deleteService,postFollowService, obtainServiceByCategory, obtainCategoriesAvaliables, obtainAllServices} = require('../controllers/service');
+const {getService,putService,postService,deleteService,postFollowService, obtainServiceByCategory, obtainCategoriesAvaliables, obtainAllServices, validCategories,getServicesUser} = require('../controllers/service');
 const { serviceNameValid, serviceIdValid, categoryValid } = require('../helpers/dbValidators');
 const { fieldsValidation } = require('../middlewares/fieldsValidation');
 const jwtValidation = require('../middlewares/jwtValidation');
@@ -19,9 +19,12 @@ router.get('/byCategory/',[
     fieldsValidation
 ],obtainServiceByCategory)
 
+router.get('/validCategories/',[jwtValidation],validCategories)
+
 router.get('/categories/',[
     jwtValidation
 ],obtainCategoriesAvaliables)
+router.get('/userServices/',[jwtValidation],getServicesUser)
 
 router.get('/:id',[
     jwtValidation,

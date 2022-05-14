@@ -12,12 +12,34 @@ const getService = async(req,res)=>{
         const {id} = req.params;
         
         //Verify that the user request your service
-        const service = await Service.find({_id:id})
+        const service = await Service.findById(id);
 
         
         res.json({
                 success:true,
                 service
+            });
+        
+
+        
+
+    } catch (error) {
+        res.status(500).json({success:false,msg:'Contact with the admin'});
+    }
+    
+}
+
+const getServicesUser = async(req,res)=>{
+    try {
+        
+
+        
+        const services = await Service.find({idUser: req.uid})
+
+        
+        res.json({
+                success:true,
+                services
             });
         
 
@@ -77,13 +99,12 @@ const putService = async (req,res)=>{
         if(service && service.idUser == req.uid){
             const {idUser, ...rest} = req.body;
             rest.localization = service.localization;
-
             if(rest.cityName)
                 rest.localization.cityName = rest.cityName;
             if(rest.street)
                 rest.localization.street = rest.street; 
             if(rest.postalCode)
-                rest.localizacion.postalCode =rest.postalCode;
+                rest.localization.postalCode =rest.postalCode;
 
             const updatedService = await Service.findByIdAndUpdate(id,rest,{new:true});
 
@@ -97,6 +118,7 @@ const putService = async (req,res)=>{
             msg:"The user is not the director"
         });
     } catch (error) {
+        console.log(error);
         res.status(500).json({success:false,msg:'Contact with the admin'});
     }
 }
@@ -153,6 +175,9 @@ const obtainCategoriesAvaliables = async(req,res) => {
     }
 }
 
+const validCategories = async(req, res) => {
+    res.json({success:true, categories:['eletrónica','mecánica','auditoría-asesoría','aseguradoras',"peluquería",'dentistas','moda']})
+}
 const obtainServiceByCategory = async(req,res) =>{
     try {
         const {category} = req.body;
@@ -199,5 +224,7 @@ module.exports ={
     postFollowService,
     obtainServiceByCategory,
     obtainCategoriesAvaliables,
-    obtainAllServices
+    obtainAllServices,
+    validCategories,
+    getServicesUser
 }

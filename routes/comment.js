@@ -24,9 +24,6 @@ const jwtValidation = require('../middlewares/jwtValidation');
 
 router.get('/',[
     jwtValidation,
-    check('idService','It is not a mongo id').optional().isMongoId().custom(serviceIdValid),
-    check('userComments','It is not a mongo id').optional().isBoolean(),
-    fieldsValidation
 ],getComments);
 
 router.put('/:id',[

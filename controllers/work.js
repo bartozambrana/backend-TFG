@@ -15,7 +15,7 @@ const getWorks = async(req = request,res = response) => {
         const works = await Work.find({idService})
         res.json({
             success:true,
-            works
+            works: works.reverse()
         })
     } catch (error) {
         res.status(400).json({success:false,msg:'Contact with the admin'});
@@ -67,7 +67,7 @@ const postWork = async(req = request,res = response) => {
             
             return res.json({
                 success: true,
-                msg:'Work upload'
+                work
             });
         }
 

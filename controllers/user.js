@@ -12,6 +12,7 @@ const deleteServiceElements = require('../helpers/deleteService');
 
 const getUser = async(req = request, res = response) =>{
 
+    
     try{ //realiza la petición el mismo que quiere borrarlo.
         const user = await User.findById(req.uid).populate({path:'followServices',select:'serviceName'});
         let services = undefined;

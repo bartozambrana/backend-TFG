@@ -100,7 +100,7 @@ const replyIdValid = async(id) => {
 }
 
 const categoryValid = async(category) => {
-    const validCategories = ['eletrónica','mecánica','auditoría-asesoría','aseguradoras',"peluquería",'dentistas']
+    const validCategories = ['eletrónica','mecánica','auditoría-asesoría','aseguradoras',"peluquería",'dentistas','moda']
 
     if(!validCategories.includes(category)){
         throw new Error(`Category not valid, avaliables categories ${validCategories}`);

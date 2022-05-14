@@ -7,7 +7,7 @@ const Service = require('../models/services');
 
 
 const getComments = async (req = request, res = response) => {
-    const {idService,userComments} = req.body;
+    const {idService,userComments} = req.query;
 
     try {
         let comments = [];
@@ -20,7 +20,7 @@ const getComments = async (req = request, res = response) => {
         }else if(idService)
             comments = await Comments.find({idService,status:true}).populate({path:'replyTo',match:{status:true}});
         else if(userComments){
-            comments = await Comments.find({status:true}).
+            comments = await Comments.find({status:true}).populate({path:'idService',select:'serviceName'}).
                             populate({path:'replyTo',match:{author:req.uid,status:true}})
                             .or({author:req.uid});
         }
@@ -49,7 +49,7 @@ const putComment = async(req = request, res = response) =>{
             }
 
             //update comment
-            msg = await ReplyComment.findByIdAndUpdate(id,{text},{new:true});
+            msg = await ReplyComment.findByIdAndUpdate(id,{text},{new:true}).populate({path:'idService',select:'serviceName'});
 
         }else if(comment){
             //Verify if the author is him or his businnes.
@@ -58,7 +58,7 @@ const putComment = async(req = request, res = response) =>{
             }
 
             //update comment
-            msg = await Comments.findByIdAndUpdate(id,{text},{new:true});
+            msg = await Comments.findByIdAndUpdate(id,{text},{new:true}).populate({path:'idService',select:'serviceName'});
 
         }else{
             return res.status(400).json({success:false,msg:'id does not exists'});

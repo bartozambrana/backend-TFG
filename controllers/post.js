@@ -17,8 +17,9 @@ const getPosts = async(req = request, res = response)=>{
     try {
         const {idService} = req.params;
         const posts = await Post.find({idService});
-        res.json({success:true,posts});
+        res.json({success:true,posts: posts.reverse()});
     } catch (error) {
+        console.log(error)
         res.status(500).json({success:false,msg:'Contact with the admin'})
     }
 }
@@ -35,7 +36,7 @@ const putPost = async(req = request, res = response)=>{
             const {idService , ...rest} = req.body;
             
             //updatePhotoPost
-            if(Object.keys(req.files).length != 0){
+            if(req.files && Object.keys(req.files).length != 0){
             //extension Validation
                 try {
                     await filePostValidation(req)
@@ -56,11 +57,11 @@ const putPost = async(req = request, res = response)=>{
             
             
             //we only update the fields of the body request 
-            await Post.findByIdAndUpdate(id,rest);
+            const postUpdated = await Post.findByIdAndUpdate(id,rest,{new:true});
         
             return res.json({
                 success:true,
-                msg:'post updated'
+                post : postUpdated
             });
         }
 
@@ -69,6 +70,7 @@ const putPost = async(req = request, res = response)=>{
             msg:"The user is not the bussiness director"
         });
     } catch (error) {
+        console.log(error);
         res.status(400).json({success:false,msg:'Contact with the admin'});
     }
     
@@ -156,7 +158,7 @@ const postPost = async (req = request, res = response)=>{
             
             return res.json({
                 success: true,
-                msg:'Post upload'
+                post
             });
         }
 
