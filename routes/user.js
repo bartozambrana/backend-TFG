@@ -18,6 +18,7 @@ router.put('/',[
     check('email','invalid').optional().isEmail().notEmpty().custom(emailValid),
     check('type','invalid').optional().isBoolean(),
     check('password','invalid').optional().isString().notEmpty(),
+    
     check('userName','invalid').optional().isString().notEmpty().custom(userNameValid),
     fieldsValidation
 ], putUser);      //Update user :id.
