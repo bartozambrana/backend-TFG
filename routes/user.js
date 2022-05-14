@@ -15,9 +15,10 @@ router.get('/',[
 ], getUser);      //Obtain the user information.
 router.put('/',[
     jwtValidation,
-    check('email','invalid').optional().isEmail().notEmpty(),
+    check('email','invalid').optional().isEmail().notEmpty().custom(emailValid),
     check('type','invalid').optional().isBoolean(),
     check('password','invalid').optional().isString().notEmpty(),
+    check('userName','invalid').optional().isString().notEmpty().custom(userNameValid),
     fieldsValidation
 ], putUser);      //Update user :id.
 

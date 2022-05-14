@@ -201,12 +201,16 @@ const obtainAllServices = async(req,res) =>{
 }
 const deleteService = async(req,res)=>{
     try {
+        const {id} = req.params;
         //Verify that the user is the bussinnes onwer.
         const service = await Service.findById(id);
         if(service.idUser != req.uid)
             return res.status(400).json({success:false,msg:`User does not have that business`});
 
         await deleteServiceElements(id);
+
+        await Service.findByIdAndDelete(id,{state:false})
+
 
     } catch (error) {
         res.status(500).json({msg:'contact with admin',success:false});
