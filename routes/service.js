@@ -1,76 +1,118 @@
 /** requirements - thrid party **/
-const {Router} = require('express');
-const {check} = require('express-validator');
+const { Router } = require("express");
+const { check } = require("express-validator");
 
 /** Local requirements **/
-const {getService,putService,postService,deleteService,postFollowService, obtainServiceByCategory, obtainCategoriesAvaliables, obtainAllServices, validCategories,getServicesUser} = require('../controllers/service');
-const { serviceNameValid, serviceIdValid, categoryValid } = require('../helpers/dbValidators');
-const { fieldsValidation } = require('../middlewares/fieldsValidation');
-const jwtValidation = require('../middlewares/jwtValidation');
+const {
+  getService,
+  putService,
+  postService,
+  deleteService,
+  postFollowService,
+  obtainServicesQuery,
+  obtainCategoriesAvaliables,
+  obtainAllServices,
+  validCategories,
+  getServicesUser,
+} = require("../controllers/service");
 
+const {
+  serviceNameValid,
+  serviceIdValid,
+  categoryValid,
+} = require("../helpers/dbValidators");
+
+const { fieldsValidation } = require("../middlewares/fieldsValidation");
+const jwtValidation = require("../middlewares/jwtValidation");
 
 const router = Router();
 
-router.get('/all/',[jwtValidation],obtainAllServices)
+router.get("/all/", [jwtValidation], obtainAllServices);
 
-router.get('/byCategory/',[
+router.get("/search/", [jwtValidation], obtainServicesQuery);
+
+router.get("/validCategories/", [jwtValidation], validCategories);
+
+router.get("/categories/", [jwtValidation], obtainCategoriesAvaliables);
+
+router.get("/userServices/", [jwtValidation], getServicesUser);
+
+router.get(
+  "/:id",
+  [
     jwtValidation,
-    check('category','invalid').isString().notEmpty().custom(categoryValid),
-    fieldsValidation
-],obtainServiceByCategory)
+    check("id", "No es un ID válido").isMongoId().custom(serviceIdValid),
+    fieldsValidation,
+  ],
+  getService
+);
 
-router.get('/validCategories/',[jwtValidation],validCategories)
-
-router.get('/categories/',[
-    jwtValidation
-],obtainCategoriesAvaliables)
-router.get('/userServices/',[jwtValidation],getServicesUser)
-
-router.get('/:id',[
+router.post(
+  "/",
+  [
     jwtValidation,
-    check('id','No es un ID válido').isMongoId().custom(serviceIdValid),
-    fieldsValidation
-],getService);
+    check("serviceName", "Invalid")
+      .isString()
+      .notEmpty()
+      .custom(serviceNameValid),
+    check("serviceInfo", "Invalid").isString().notEmpty(),
+    check("cityName", "Invalid").isString().notEmpty(),
+    check("street", "Invalid").isString().notEmpty(),
+    check("postalCode", "Invalid").isNumeric().notEmpty(),
+    check("serviceCategory", "Invalid")
+      .isString()
+      .notEmpty()
+      .custom(categoryValid),
+    fieldsValidation,
+  ],
+  postService
+);
 
-
-
-
-router.post('/',[
+router.post(
+  "/follow-unfollow/:id",
+  [
     jwtValidation,
-    check('serviceName','Invalid').isString().notEmpty().custom(serviceNameValid),
-    check('serviceInfo','Invalid').isString().notEmpty(),
-    check('cityName','Invalid').isString().notEmpty(),
-    check('street','Invalid').isString().notEmpty(),
-    check('postalCode','Invalid').isNumeric().notEmpty(),
-    check('serviceCategory','Invalid').isString().notEmpty().custom(categoryValid),
-    fieldsValidation
-],postService)
+    check("id", "It is not a valid Id")
+      .isMongoId()
+      .notEmpty()
+      .custom(serviceIdValid),
+    fieldsValidation,
+  ],
+  postFollowService
+);
 
-
-
-router.post('/follow-unfollow/:id',[
+router.put(
+  "/:id",
+  [
     jwtValidation,
-    check('id','It is not a valid Id').isMongoId().notEmpty().custom(serviceIdValid),
-    fieldsValidation
-],postFollowService)
+    check("id", "No es un ID válido").isMongoId().custom(serviceIdValid),
+    check("serviceCategory", "Invalid")
+      .optional()
+      .isString()
+      .notEmpty()
+      .custom(categoryValid),
+    check("serviceName", "Invalid")
+      .optional()
+      .isString()
+      .notEmpty()
+      .custom(serviceNameValid),
+    check("serviceInfo", "Invalid").optional().isString().notEmpty(),
+    check("cityName", "Invalid").optional().isString().notEmpty(),
+    check("street", "Invalid").optional().isString().notEmpty(),
+    check("postalCode", "Invalid").optional().isNumeric().notEmpty(),
+    fieldsValidation,
+  ],
+  putService
+);
 
-router.put('/:id',[
+router.delete(
+  "/:id",
+  [
     jwtValidation,
-    check('id','No es un ID válido').isMongoId().custom(serviceIdValid),
-    check('serviceCategory','Invalid').optional().isString().notEmpty().custom(categoryValid),
-    check('serviceName','Invalid').optional().isString().notEmpty().custom(serviceNameValid),
-    check('serviceInfo','Invalid').optional().isString().notEmpty(),
-    check('cityName','Invalid').optional().isString().notEmpty(),
-    check('street','Invalid').optional().isString().notEmpty(),
-    check('postalCode','Invalid').optional().isNumeric().notEmpty(),
-    fieldsValidation
-],putService);
+    check("id", "No es un ID válido").isMongoId().custom(serviceIdValid),
+    fieldsValidation,
+  ],
+  deleteService
+);
 
-router.delete('/:id',[
-    jwtValidation,
-    check('id','No es un ID válido').isMongoId().custom(serviceIdValid),
-    fieldsValidation
-],deleteService);
-
-
-module.exports = router
+module.exports = router;

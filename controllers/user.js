@@ -45,7 +45,7 @@ const getUser = async(req = request, res = response) =>{
 const putUser = async(req = request, res = response) => {
     
 
-    const {password,userName, ...rest} = req.body;
+    const {password, ...rest} = req.body;
     try {
 
         //if user want to change the password
@@ -110,7 +110,7 @@ const deleteUser = async(req = request, res = response) => {
         if(user.type){
             const services = await Service.find({idUser:user.id});
             for(const service of Object.values(services))
-                await deleteServiceElements(Service.id);
+                await deleteServiceElements(service.id);
         }
 
         res.json({
