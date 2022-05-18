@@ -4,6 +4,7 @@ const Work = require("../models/works");
 const Post = require("../models/posts");
 const deleteServiceElements = require("../helpers/deleteService");
 const { request } = require("express");
+const { default: mongoose } = require("mongoose");
 
 const getService = async (req, res) => {
   try {
@@ -192,16 +193,36 @@ const obtainAllServices = async (req, res) => {
 
 const obtainServicesQuery = async (req = request, res) => {
   try {
-    const { categories, population } = req.query;
+    const { categories, population, name } = req.query;
     const categoriesList = categories.split(";");
     let services = [];
 
-    //Obtenemos los servicios mediante la categoria mandadas
-    services = Service.find({ serviceCategory: { $in: categoriesList } });
-    //Filtaramos aquellos que no mantengan la población
-    services = services.filter((s) =>
-      s.localization.cityName.toLowerCase().includes(population)
+    console.log(
+      "Categorias: ",
+      categoriesList,
+      " poblacion: ",
+      population,
+      " name: ",
+      name
     );
+
+    //Obtenemos los servicios mediante la categoria mandadas
+    if (categories) {
+      services = await Service.find({
+        status: true,
+        serviceCategory: { $in: categoriesList },
+      });
+    } else {
+      services = await Service.find({ status: true });
+    }
+
+    //Filtaramos aquellos que no mantengan la población
+    services = services.filter((s) => {
+      return (
+        s.localization.cityName.toLowerCase().includes(population) &&
+        s.serviceName.toLowerCase().includes(name)
+      );
+    });
 
     return res.json({ services, success: true });
   } catch (error) {
@@ -227,6 +248,62 @@ const deleteService = async (req, res) => {
   }
 };
 
+const getServicesRandom = async (req, res) => {
+  try {
+    const { amount = 10, servicesSended } = req.query;
+    const numServices = await Service.count({ status: true });
+
+    if (Number(amount) > numServices) amount = numServices;
+
+    let services = [];
+    if (servicesSended) {
+      //Formamos un array con los servicios que han sido enviados.
+      const servicesList = servicesSended.split(";");
+
+      services = await Service.aggregate([
+        {
+          $match: {
+            status: true,
+            _id: {
+              $nin: servicesList.map(
+                (service) => new mongoose.Types.ObjectId(service)
+              ),
+            },
+          },
+        },
+        { $sample: { size: Number(amount) } },
+      ]);
+    } else {
+      services = await Service.aggregate([
+        { $match: { status: true } },
+        { $sample: { size: Number(amount) } },
+      ]);
+    }
+
+    //Al filtrar los documentos repetidos puede obtener un undefined si se devuelven todos los servicios.
+    if (!services) services = [];
+
+    res.json({ success: true, services });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ msg: "contact with admin", success: false });
+  }
+};
+
+// const getServicesByName = (req, res) => {
+//   try {
+//     const {name} = req.params;
+
+//     let services = await Service.find({status:true});
+//     services = services.filter((s) =>
+//       s.serviceName.toLowerCase().includes(name)
+//     );
+//     res.json({success:true, services});
+//   } catch (error) {
+//     res.status(500).json({msg: "contact with admin", success: false});
+//   }
+// }
+
 module.exports = {
   getService,
   putService,
@@ -238,4 +315,5 @@ module.exports = {
   obtainServicesQuery,
   validCategories,
   getServicesUser,
+  getServicesRandom,
 };

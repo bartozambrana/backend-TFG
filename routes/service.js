@@ -14,6 +14,7 @@ const {
   obtainAllServices,
   validCategories,
   getServicesUser,
+  getServicesRandom,
 } = require("../controllers/service");
 
 const {
@@ -36,6 +37,8 @@ router.get("/validCategories/", [jwtValidation], validCategories);
 router.get("/categories/", [jwtValidation], obtainCategoriesAvaliables);
 
 router.get("/userServices/", [jwtValidation], getServicesUser);
+
+router.get("/random/", [jwtValidation], getServicesRandom);
 
 router.get(
   "/:id",
