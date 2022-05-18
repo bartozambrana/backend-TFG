@@ -258,8 +258,9 @@ const getServicesRandom = async (req, res) => {
     let services = [];
     if (servicesSended) {
       //Formamos un array con los servicios que han sido enviados.
+      console.log(servicesSended);
       const servicesList = servicesSended.split(";");
-
+      console.log(servicesList);
       services = await Service.aggregate([
         {
           $match: {
@@ -272,11 +273,41 @@ const getServicesRandom = async (req, res) => {
           },
         },
         { $sample: { size: Number(amount) } },
+        {
+          $project: {
+            _id: {
+              $cond: {
+                if: { $ne: ["", "$_id"] },
+                then: "$$REMOVE",
+                else: "$_id",
+              },
+            },
+            uid: "$_id",
+            serviceInfo: "$serviceInfo",
+            serviceName: "$serviceName",
+            localization: "$localization",
+          },
+        },
       ]);
     } else {
       services = await Service.aggregate([
         { $match: { status: true } },
         { $sample: { size: Number(amount) } },
+        {
+          $project: {
+            _id: {
+              $cond: {
+                if: { $ne: ["", "$_id"] },
+                then: "$$REMOVE",
+                else: "$_id",
+              },
+            },
+            uid: "$_id",
+            serviceInfo: "$serviceInfo",
+            serviceName: "$serviceName",
+            localization: "$localization",
+          },
+        },
       ]);
     }
 
