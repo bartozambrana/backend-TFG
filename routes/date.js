@@ -1,110 +1,158 @@
 /** requirements - thrid party **/
-const {Router} = require('express');
-const {check} = require('express-validator');
+const { Router } = require("express");
+const { check } = require("express-validator");
 
 /** Local requirements **/
-const { fieldsValidation } = require('../middlewares/fieldsValidation');
-const jwtValidation= require('../middlewares/jwtValidation')
-const { 
-    getAllDatesUser, 
-    getDatesAvaliablesService, 
-    getAsignedDates,
-    postDate, 
-    deleteDate, 
-    putSelectDateUser, 
-    putModifyDate, 
-    putCancelDate ,
-    putDate,
-    getDatesPDF
-} = require('../controllers/date');
+const { fieldsValidation } = require("../middlewares/fieldsValidation");
+const jwtValidation = require("../middlewares/jwtValidation");
+const {
+  getAllDatesUser,
+  getDatesAvaliablesService,
+  getAsignedDates,
+  postDate,
+  deleteDate,
+  putSelectDateUser,
+  putModifyDate,
+  putCancelDate,
+  putDate,
+  getDatesPDF,
+} = require("../controllers/date");
 
-const { serviceIdValid, dateIdValid, validHourFormat} = require('../helpers/dbValidators');
-const dateValidation = require('../middlewares/dateValidation');
+const {
+  serviceIdValid,
+  dateIdValid,
+  validHourFormat,
+} = require("../helpers/dbValidators");
+const dateValidation = require("../middlewares/dateValidation");
 
 /** Global constants **/
 const router = Router();
 
 // All dates of a user.
-router.get('/',[
-    jwtValidation
-], getAllDatesUser );
+router.get("/", [jwtValidation], getAllDatesUser);
 
 // All dates avaliable for a bussiness for a day in a month and year
-router.get('/:idService',[
+router.get(
+  "/:idService",
+  [
     jwtValidation,
-    check('idService','invalid').isMongoId().custom(serviceIdValid),
-    check('dateInput','invalid').isDate().notEmpty(),
-    fieldsValidation
-], getDatesAvaliablesService)
+    check("idService", "invalid").isMongoId().custom(serviceIdValid),
+    fieldsValidation,
+  ],
+  getDatesAvaliablesService
+);
 
-router.get('/asignated/:idService',[
+router.get(
+  "/asignated/:idService",
+  [
     jwtValidation,
-    check('idService','invalid').isMongoId().custom(serviceIdValid),
-    check('dateInput','invalid').isDate().notEmpty(),
-    fieldsValidation
-], getAsignedDates)
+    check("idService", "invalid").isMongoId().custom(serviceIdValid),
+    check("dateInput", "invalid").isDate().notEmpty(),
+    fieldsValidation,
+  ],
+  getAsignedDates
+);
 
 // Add a new date from a service.
-router.post('/',[
+router.post(
+  "/:idService",
+  [
     jwtValidation,
-    check('dateDay','invalid type').isDate().notEmpty(),
-    check('initHour','invalid type').isString().notEmpty().custom(validHourFormat),
-    check('endHour','invalid type').isString().notEmpty().custom(validHourFormat),
-    check('idService','invalid').isMongoId().custom(serviceIdValid),
-    check('status').optional().isBoolean(),
-    fieldsValidation
-], postDate);
-
+    check("dateDay", "invalid type").isDate().notEmpty(),
+    check("initHour", "invalid type")
+      .isString()
+      .notEmpty()
+      .custom(validHourFormat),
+    check("endHour", "invalid type")
+      .isString()
+      .notEmpty()
+      .custom(validHourFormat),
+    check("status").optional().isBoolean(),
+    fieldsValidation,
+  ],
+  postDate
+);
 
 // Modify date owner
-router.put('/:id',[
+router.put(
+  "/:id",
+  [
     jwtValidation,
-    check('id','invalid').isMongoId().custom(dateIdValid),
-    check('date','invalid type').optional().isDate().notEmpty(),
-    check('initHour','invalid type').optional().isString().notEmpty().custom(validHourFormat),
-    check('endHour','invalid type').optional().isString().notEmpty().custom(validHourFormat),
-    check('status').optional().isBoolean(),
-    fieldsValidation
-], putDate);
+    check("id", "invalid").isMongoId().custom(dateIdValid),
+    check("date", "invalid type").optional().isDate().notEmpty(),
+    check("initHour", "invalid type")
+      .optional()
+      .isString()
+      .notEmpty()
+      .custom(validHourFormat),
+    check("endHour", "invalid type")
+      .optional()
+      .isString()
+      .notEmpty()
+      .custom(validHourFormat),
+    check("status").optional().isBoolean(),
+    fieldsValidation,
+  ],
+  putDate
+);
 
 //User select Date
-router.put('/select/:id',[
+router.put(
+  "/select/:id",
+  [
     jwtValidation,
-    check('id','invalid').isMongoId().custom(dateIdValid),
+    check("id", "invalid").isMongoId().custom(dateIdValid),
     dateValidation,
-    fieldsValidation
-], putSelectDateUser);
+    fieldsValidation,
+  ],
+  putSelectDateUser
+);
 
 //User modify Date
-router.put('/modify/:id',[
+router.put(
+  "/modify/:id",
+  [
     jwtValidation,
-    check('id','invalid').isMongoId().notEmpty().custom(dateIdValid),
-    check('idOldDate').isMongoId().notEmpty().custom(dateIdValid),
+    check("id", "invalid").isMongoId().notEmpty().custom(dateIdValid),
+    check("idOldDate").isMongoId().notEmpty().custom(dateIdValid),
     dateValidation,
-    fieldsValidation
-], putModifyDate);
+    fieldsValidation,
+  ],
+  putModifyDate
+);
 
-router.put('/cancel/:id',[
+router.put(
+  "/cancel/:id",
+  [
     jwtValidation,
-    check('id','invalid').isMongoId().notEmpty().custom(dateIdValid),
-    fieldsValidation
-], putCancelDate);
-
+    check("id", "invalid").isMongoId().notEmpty().custom(dateIdValid),
+    fieldsValidation,
+  ],
+  putCancelDate
+);
 
 // canceling an appointment (dar de baja) owner.
-router.delete('/:id',[
+router.delete(
+  "/:id",
+  [
     jwtValidation,
-    check('id','invalid').isMongoId().custom(dateIdValid),
-    fieldsValidation
-], deleteDate);
+    check("id", "invalid").isMongoId().custom(dateIdValid),
+    fieldsValidation,
+  ],
+  deleteDate
+);
 
 // Generate a PDF.
 
-router.get('/pdf/:id',[
+router.get(
+  "/pdf/:id",
+  [
     jwtValidation,
-    check('id','invalid').isMongoId().custom(serviceIdValid),
-    check('initDate','invalid date').isDate().notEmpty(),
-    check('endDate','invalid date').isDate().notEmpty(),
-    fieldsValidation
-],getDatesPDF)
+    check("id", "invalid").isMongoId().custom(serviceIdValid),
+    check("initDate", "invalid date").isDate().notEmpty(),
+    check("endDate", "invalid date").isDate().notEmpty(),
+    fieldsValidation,
+  ],
+  getDatesPDF
+);
 module.exports = router;
