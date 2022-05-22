@@ -23,6 +23,7 @@ const {
   dateIdValid,
   validHourFormat,
 } = require("../helpers/dbValidators");
+
 const dateValidation = require("../middlewares/dateValidation");
 
 /** Global constants **/
@@ -37,6 +38,7 @@ router.get(
   [
     jwtValidation,
     check("idService", "invalid").isMongoId().custom(serviceIdValid),
+    check("dateInput",'Fecha inválida').isDate().notEmpty(),
     fieldsValidation,
   ],
   getDatesAvaliablesService

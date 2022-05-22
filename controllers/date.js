@@ -14,6 +14,8 @@ const { createPdfDocument, cleanPDF } = require("../helpers/upload");
 const path = require("path");
 const fs = require("fs");
 
+const { default: mongoose } = require("mongoose");
+
 /***************************************
  ***************************************
  ***************************************/
@@ -27,12 +29,16 @@ const hourToInteger = (hour) => {
 /* Documented */
 const getAllDatesUser = async (req = request, res = response) => {
   try {
-    const userDates = await Dates.find({ idUser: req.uid }).sort({ date: -1 });
+    const userDates = await Dates.find({ idUser: req.uid })
+      .sort({ date: -1 })
+      .populate({ path: "idService", select: "serviceName" });
+
     res.json({
       success: true,
       userDates,
     });
   } catch (error) {
+    console.log(error);
     return res.status(500).json({
       success: false,
       msg: "contact with the admin",
@@ -58,7 +64,7 @@ const getDatesAvaliablesService = async (req = request, res = response) => {
 };
 
 const getAsignedDates = async (req = request, res = response) => {
-  const { dateInput } = req.body;
+  const { dateInput } = req.query;
   const { idService } = req.params;
 
   //Verify that the user is the service owner.
@@ -74,7 +80,7 @@ const getAsignedDates = async (req = request, res = response) => {
       idService,
       date: dateQuery,
       status: false,
-    });
+    }).populate({ path: "idUser", select: "userName -_id" });
     res.json({ success: true, dates: dateList });
   } catch (error) {
     res.status(500).json({ success: false, msg: "Contact with the admin" });
