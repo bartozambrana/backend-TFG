@@ -232,7 +232,9 @@ const putModifyDate = async (req = request, res = response) => {
       id,
       { status: false, idUser: req.uid },
       { new: true }
-    ).populate("idUser");
+    )
+      .populate("idUser")
+      .populate({ path: "idService", select: "serviceName" });
     //Async email send.
     sendIndividualEmail({
       subject: "Cita Modificada",

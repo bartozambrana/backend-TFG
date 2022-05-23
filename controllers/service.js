@@ -258,9 +258,7 @@ const getServicesRandom = async (req, res) => {
     let services = [];
     if (servicesSended) {
       //Formamos un array con los servicios que han sido enviados.
-      console.log(servicesSended);
       const servicesList = servicesSended.split(";");
-      console.log(servicesList);
       services = await Service.aggregate([
         {
           $match: {
