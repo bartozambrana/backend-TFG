@@ -8,7 +8,6 @@ const Service = require("../models/services");
 const deleteServiceElements = require("../helpers/deleteService");
 const Posts = require("../models/posts");
 const Works = require("../models/works");
-const { default: mongoose } = require("mongoose");
 
 const getUser = async (req = request, res = response) => {
   try {
@@ -114,10 +113,13 @@ const getRandomContent = async (req = request, res = response) => {
   try {
     let { servedPosts = [], servedWorks = [] } = req.query;
     // to array.
-    if (servedPosts.length !== 0) servedPosts = servedPosts.split(";");
+    if (servedPosts.length !== 0) {
+      servedPosts = servedPosts.split(";");
+    }
 
-    if (servedWorks.length !== 0) servedWorks = servedWorks.split(";");
-
+    if (servedWorks.length !== 0) {
+      servedWorks = servedWorks.split(";");
+    }
     //Obtain services followed by the user.
     let { followServices: followedServices } = await User.findById(
       req.uid
@@ -129,16 +131,14 @@ const getRandomContent = async (req = request, res = response) => {
     let posts = [];
     //Obtain three posts from follow services
     posts = await Posts.find({
-      id: { $nin: servedPosts },
+      _id: { $nin: servedPosts },
       idService: { $in: followedServices },
     })
       .sort({ id: -1 })
-      .limit(3);
+      .limit(1);
 
     //Add currenty posts served.
-    posts.map((element) =>
-      servedPosts.push(new mongoose.Types.ObjectId(element.id))
-    );
+    posts.map((element) => servedPosts.push(element.id));
 
     let amount = 2;
     if (followedServices.length === 0) amount = 5;
@@ -146,7 +146,7 @@ const getRandomContent = async (req = request, res = response) => {
     // The rest of posts from random services.
     posts.push(
       ...(await Posts.find({
-        id: {
+        _id: {
           $nin: servedPosts,
         },
         idService: { $nin: followedServices },
@@ -159,21 +159,19 @@ const getRandomContent = async (req = request, res = response) => {
 
     let works = [];
     works = await Works.find({
-      id: { $nin: servedWorks },
+      _id: { $nin: servedWorks },
       idService: { $in: followedServices },
     })
       .sort({ id: -1 })
-      .limit(3);
+      .limit(1);
 
     //Add currenty works served.
-    works.map((element) =>
-      servedWorks.push(new mongoose.Types.ObjectId(element.id))
-    );
+    works.map((element) => servedWorks.push(element.id));
 
     // The rest of posts from random services.
     works.push(
       ...(await Works.find({
-        id: {
+        _id: {
           $nin: servedWorks,
         },
         idService: { $nin: followedServices },

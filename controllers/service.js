@@ -196,16 +196,6 @@ const obtainServicesQuery = async (req = request, res) => {
     const { categories, population, name } = req.query;
     const categoriesList = categories.split(";");
     let services = [];
-
-    console.log(
-      "Categorias: ",
-      categoriesList,
-      " poblacion: ",
-      population,
-      " name: ",
-      name
-    );
-
     //Obtenemos los servicios mediante la categoria mandadas
     if (categories) {
       services = await Service.find({
