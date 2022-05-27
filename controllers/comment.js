@@ -10,17 +10,21 @@ const getComments = async (req = request, res = response) => {
 
   try {
     let comments = [];
-
+    // we receive idService and user
     if (idService && userComments) {
       comments = await Comments.find({ idService, status: true })
         .populate({ path: "replyTo", match: { author: req.uid, status: true } })
         .or({ author: req.uid });
-    } else if (idService)
-      comments = await Comments.find({ idService, status: true }).populate({
-        path: "replyTo",
-        match: { status: true },
-      });
-    else if (userComments) {
+    } else if (idService) {
+      // only service
+      comments = await Comments.find({ idService, status: true })
+        .populate({
+          path: "replyTo",
+          match: { status: true },
+          populate: { path: "author", select: "userName serviceName -_id" },
+        })
+        .populate({ path: "author", select: "userName -_id" });
+    } else if (userComments) {
       comments = await Comments.find({ status: true })
         .populate({ path: "idService", select: "serviceName" })
         .populate({ path: "replyTo", match: { author: req.uid, status: true } })
@@ -55,7 +59,7 @@ const putComment = async (req = request, res = response) => {
         id,
         { text },
         { new: true }
-      ).populate({ path: "idService", select: "serviceName" });
+      ).populate({ path: "author", select: "serviceName userName -_id" });
     } else if (comment) {
       //Verify if the author is him or his businnes.
       if (comment.author != req.uid) {
@@ -65,11 +69,9 @@ const putComment = async (req = request, res = response) => {
       }
 
       //update comment
-      msg = await Comments.findByIdAndUpdate(
-        id,
-        { text },
-        { new: true }
-      ).populate({ path: "idService", select: "serviceName" });
+      msg = await Comments.findByIdAndUpdate(id, { text }, { new: true })
+        .populate({ path: "author", select: "userName -_id" })
+        .populate({ path: "idService", select: "serviceName" });
     } else {
       return res
         .status(400)
@@ -128,22 +130,40 @@ const postReplyTo = async (req = request, res = response) => {
   const { text } = req.body;
 
   try {
+    //obtain comment
     const comment = await Comments.findById(id).select("idService -_id");
+    //obtain service to the owner if the user is the bussiness owner
     const service = await Service.findOne({
       id: comment.idService,
       idUser: req.uid,
     });
 
     let reply = "";
-    if (service) reply = new ReplyComment({ text, author: service.id });
-    else reply = new ReplyComment({ text, author: req.uid });
+    if (service)
+      reply = new ReplyComment({
+        text,
+        author: service.id,
+        propertyModel: "Service",
+      });
+    else
+      reply = new ReplyComment({
+        text,
+        author: req.uid,
+        propertyModel: "User",
+      });
 
     await reply.save();
 
     await Comments.findByIdAndUpdate(id, { $push: { replyTo: reply.id } });
 
+    reply = await ReplyComment.findById(reply.id).populate({
+      path: "author",
+      select: "serviceName userName -_id",
+    });
+
     res.json({ success: true, reply });
   } catch (error) {
+    console.log(error);
     res.status(500).json({ success: false, msg: "contact with admin" });
   }
 };

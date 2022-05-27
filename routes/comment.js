@@ -50,8 +50,8 @@ router.post(
   "/reply/:id",
   [
     jwtValidation,
-    check("id", "invalid").isMongoId().custom(commentIdValid),
-    check("text", "invalid").isString().notEmpty(),
+    check("id", "invalid id").isMongoId().custom(commentIdValid),
+    check("text", "invalid text").isString().notEmpty(),
     fieldsValidation,
   ],
   postReplyTo

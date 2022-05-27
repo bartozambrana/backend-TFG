@@ -16,15 +16,9 @@ const getUser = async (req = request, res = response) => {
       path: "followServices",
       select: "serviceName",
     });
-    let services = undefined;
+    let services = [];
 
     if (user.type) services = await Service.find({ idUser: req.uid });
-
-    if (!services)
-      return res.json({
-        user,
-        success: true,
-      });
 
     res.json({
       user,
