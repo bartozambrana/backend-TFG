@@ -16,6 +16,8 @@ const {
   putCancelDate,
   putDate,
   getDatesPDF,
+  postValorationDate,
+  getRating,
 } = require("../controllers/date");
 
 const {
@@ -38,7 +40,7 @@ router.get(
   [
     jwtValidation,
     check("idService", "invalid").isMongoId().custom(serviceIdValid),
-    check("dateInput",'Fecha inválida').isDate().notEmpty(),
+    check("dateInput", "Fecha inválida").isDate().notEmpty(),
     fieldsValidation,
   ],
   getDatesAvaliablesService
@@ -53,6 +55,12 @@ router.get(
     fieldsValidation,
   ],
   getAsignedDates
+);
+
+router.get(
+  "/rating/:id",
+  [jwtValidation, check("id", "id invalid").isMongoId().custom(dateIdValid)],
+  getRating
 );
 
 // Add a new date from a service.
@@ -144,6 +152,15 @@ router.delete(
   deleteDate
 );
 
+router.post(
+  "/valoration/:id",
+  [
+    jwtValidation,
+    check("id", "invalidId").isMongoId().custom(dateIdValid),
+    check("valoration", "is a number").isNumeric(),
+  ],
+  postValorationDate
+);
 // Generate a PDF.
 
 router.get(

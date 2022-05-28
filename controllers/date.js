@@ -339,7 +339,7 @@ const postValorationDate = async (req = request, res = response) => {
   const { id } = req.params;
   const { valoration } = req.body;
   //Verify user
-  const date = await Dates.findById(id);
+  let date = await Dates.findById(id);
   if (date.idUser != req.uid)
     return res.status(400).json({
       success: false,
@@ -352,8 +352,33 @@ const postValorationDate = async (req = request, res = response) => {
       msg: "you have a valoration for that date yet",
     });
 
-  await Dates.findByIdAndUpdate(id, { valoration }, { new: true });
-  res.json({ success: true, msg: "Valoration added" });
+  date = await Dates.findByIdAndUpdate(
+    id,
+    { valoration },
+    { new: true }
+  ).populate({ path: "idService", select: " serviceName " });
+  res.json({ success: true, date });
+};
+
+const getRating = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const ratingAvg = await Dates.aggregate([
+      { $match: { idService: new mongoose.Types.ObjectId(id) } },
+      {
+        $group: {
+          _id: "$idService",
+          average: { $avg: "$valoration" },
+        },
+      },
+    ]);
+
+    res.json({ success: true, rating: ratingAvg[0].average });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ success: false, msg: "contact with the admin" });
+  }
 };
 
 module.exports = {
@@ -368,4 +393,5 @@ module.exports = {
   getAsignedDates,
   getDatesPDF,
   postValorationDate,
+  getRating,
 };

@@ -95,7 +95,7 @@ const postComments = async (req = request, res = response) => {
         msg: "A bussiness only can put reply not comment to himself",
       });
 
-    //Verify that the user have a date pass in the time.
+    //Verify that the user have a pass date in the time.
     const currentDate = new Date();
     const time = currentDate.getHours() * 60 + currentDate.getMinutes();
 
@@ -110,15 +110,21 @@ const postComments = async (req = request, res = response) => {
     ]);
 
     if (apointments.length <= totalComments.length)
-      return res
-        .status(400)
-        .json({ success: false, msg: "Only a comment by date." });
+      return res.status(400).json({
+        success: false,
+        msg: "Only a comment by date. Limit attached",
+      });
 
     //Create Comment Object.
-    const comment = new Comments({ idService, author: req.uid, text });
+    let comment = new Comments({ idService, author: req.uid, text });
     await comment.save();
 
-    res.json({ success: true, comments: comment });
+    //Send informaction like others comments.
+    comment = await Comments.findById(comment.id)
+      .populate({ path: "author", select: "userName -_id" })
+      .populate({ path: "idService", select: "serviceName" });
+
+    res.json({ success: true, comment });
   } catch (error) {
     res.status(500).json({ success: false, msg: "contact with admin" });
   }
