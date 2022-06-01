@@ -110,7 +110,12 @@ const neighborhood = (pearsonCoeficients, nNeighborhoods) => {
 }
 
 // Obtenemos la recomendación
-const recommendation = (neighborhood, visitedServices, usersValorations) => {
+const recommendation = (
+    neighborhood,
+    visitedServices,
+    usersValorations,
+    nResults
+) => {
     let recommendation = []
 
     //Recorremos todos los servicios que el usuario no ha visitado.
@@ -130,7 +135,7 @@ const recommendation = (neighborhood, visitedServices, usersValorations) => {
     })
 
     //Devolvemos la recomendación.
-    return recommendation.slice(0, 3)
+    return recommendation.slice(0, nResults)
 }
 
 //Obtain userValorations.
@@ -251,6 +256,12 @@ const valorations = async (req = request, res) => {
 
 const recommendedServices = async (req, res) => {
     try {
+        const n = req.params.n
+        if (n < 0)
+            return res
+                .status(400)
+                .json({ success: false, msg: 'n must be greater than 0' })
+
         //Obtenemos los datos necesarios para realizar la recomendación.
         const [currentUserValorations, usersValorations, visitedServices] =
             await valorations(req, res)
@@ -258,12 +269,13 @@ const recommendedServices = async (req, res) => {
         //Obtenemos los coeficientes de pearson.
         const pearson = obtainPearson(usersValorations, currentUserValorations)
         //Obtenemos el vecindario.
-        const nei = neighborhood(pearson, 3)
+        const nei = neighborhood(pearson, 5)
         //Obtenemos la recomendación.
         const finalRecommendation = recommendation(
             nei,
             visitedServices,
-            usersValorations
+            usersValorations,
+            n
         )
         //Devolvemos la información necesaria acerca dichos servicios.
         const services = await Services.find({

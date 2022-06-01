@@ -66,6 +66,10 @@ router.delete('/', [jwtValidation], deleteUser) //Delete user :id.
 
 router.get('/randomContent/', [jwtValidation], getRandomContent)
 
-router.get('/recommendations/', [jwtValidation], getRecommendations)
+router.get(
+    '/recommendations/:n',
+    [jwtValidation, check('n', 'number').isNumeric().notEmpty()],
+    getRecommendations
+)
 
 module.exports = router

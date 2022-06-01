@@ -186,8 +186,8 @@ const getRandomContent = async (req = request, res = response) => {
 
 const getRecommendations = async (req = request, res = response) => {
     try {
-        const pearson = await recommendedServices(req, res)
-        res.json({ success: true, msg: pearson })
+        const recommendation = await recommendedServices(req, res)
+        res.json({ success: true, recommendation })
     } catch (error) {
         res.status(500).json({ msg: 'contact with admin', success: false })
     }
