@@ -12,13 +12,13 @@ const { recommendedServices } = require('../helpers/recommendation')
 
 const getUser = async (req = request, res = response) => {
     try {
-        //realiza la petición el mismo que quiere borrarlo.
+        //Obtenemos los datos del usuario.
         const user = await User.findById(req.uid).populate({
             path: 'followServices',
             select: 'serviceName',
         })
         let services = []
-
+        //Obtenemos los servicios que son propiedad del usuario.
         if (user.type) services = await Service.find({ idUser: req.uid })
 
         res.json({
@@ -34,17 +34,17 @@ const getUser = async (req = request, res = response) => {
     }
 }
 
-/* Documented */
+//El usiario desea actualizar los datos del mismo.
 const putUser = async (req = request, res = response) => {
     const { password, ...rest } = req.body
     try {
-        //if user want to change the password
+        //Si el usuario quiere cambiar la contraseña, la ciframos previamente.
         if (password) {
             const salt = bcryptjs.genSaltSync()
             rest.password = bcryptjs.hashSync(password, salt)
         }
 
-        //update user.
+        //Actualizamos los datos del usuario.
         const user = await User.findByIdAndUpdate(req.uid, rest, { new: true })
 
         res.json({
@@ -59,20 +59,19 @@ const putUser = async (req = request, res = response) => {
 /* Documented */
 const postUser = async (req = request, res = response) => {
     try {
-        //Verify fields.
         const { password, email, userName, type } = req.body
 
-        //Create the user instance
+        //Creamos la instacia del usuario.
         const user = new User({ userName, email, password, type })
 
         //Encrypt password.
         const salt = bcryptjs.genSaltSync()
         user.password = bcryptjs.hashSync(password, salt)
 
-        //Save user in DataBase.
+        //Guardamos el suauiro.
         await user.save()
 
-        //Obtenemos la información del body.
+        //Mandamos el usuario.
         res.json({
             success: true,
             user,
@@ -82,12 +81,12 @@ const postUser = async (req = request, res = response) => {
     }
 }
 
-/* Documented */
+//El usuario desea darse de baaja.
 const deleteUser = async (req = request, res = response) => {
     try {
         //realiza la petición el mismo que quiere borrarlo.
         const user = await User.findByIdAndUpdate(req.uid, { status: false })
-
+        //Damos de baja las servicios del usuario si los pasee.
         if (user.type) {
             const services = await Service.find({ idUser: user.id })
             for (const service of Object.values(services))
@@ -103,7 +102,7 @@ const deleteUser = async (req = request, res = response) => {
     }
 }
 
-/* We obtain random content from works and posts for the given user */
+/* Se encaga de obtener contenido aleatorio para el usuario.*/
 const getRandomContent = async (req = request, res = response) => {
     try {
         let { servedPosts = [], servedWorks = [] } = req.query
@@ -115,7 +114,7 @@ const getRandomContent = async (req = request, res = response) => {
         if (servedWorks.length !== 0) {
             servedWorks = servedWorks.split(';')
         }
-        //Obtain services followed by the user.
+        //Obtenemos los servicio que sigue el usuario.
         let { followServices: followedServices } = await User.findById(
             req.uid
         ).select('followServices -_id')
@@ -124,7 +123,7 @@ const getRandomContent = async (req = request, res = response) => {
 
         //Variable post.
         let posts = []
-        //Obtain three posts from follow services
+        //Obtenemos un post del servicio que sigue el usuario.
         posts = await Posts.find({
             _id: { $nin: servedPosts },
             idService: { $in: followedServices },
@@ -138,7 +137,7 @@ const getRandomContent = async (req = request, res = response) => {
         let amount = 2
         if (followedServices.length === 0) amount = 5
 
-        // The rest of posts from random services.
+        // dos post de servicios aleatorios.
         posts.push(
             ...(await Posts.find({
                 _id: {
@@ -150,7 +149,7 @@ const getRandomContent = async (req = request, res = response) => {
                 .limit(amount))
         )
 
-        //The same behaviour with works.
+        //Lo msimo para el caso de los trabajos.
 
         let works = []
         works = await Works.find({
@@ -175,7 +174,7 @@ const getRandomContent = async (req = request, res = response) => {
                 .limit(amount))
         )
         let homeContent = works.concat(posts)
-        //randomly order
+        //establecemos un orden aleatrorio del contenido.
         homeContent.sort(() => Math.random() - 0.5)
 
         res.json({ success: true, homeContent })
@@ -183,7 +182,7 @@ const getRandomContent = async (req = request, res = response) => {
         res.status(500).json({ msg: 'contact with admin', success: false })
     }
 }
-
+//Método encargado de obtener la recomendación para un determinado usuario.
 const getRecommendations = async (req = request, res = response) => {
     try {
         const recommendation = await recommendedServices(req, res)

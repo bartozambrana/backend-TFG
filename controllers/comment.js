@@ -5,12 +5,14 @@ const { findByIdAndUpdate } = require('../models/ReplyComment')
 const ReplyComment = require('../models/ReplyComment')
 const Service = require('../models/services')
 
+// Se encarga de obtener los comentarios de un servicio o de un usuario o
+// los comentarios de un usuario para un determinado servicio.
 const getComments = async (req = request, res = response) => {
     const { idService, userComments } = req.query
 
     try {
         let comments = []
-        // we receive idService and user
+        //Comenntarios de un usuario para un servicio
         if (idService && userComments) {
             comments = await Comments.find({ idService, status: true })
                 .populate({
@@ -19,7 +21,7 @@ const getComments = async (req = request, res = response) => {
                 })
                 .or({ author: req.uid })
         } else if (idService) {
-            // only service
+            // Comentarios de un servicio
             comments = await Comments.find({ idService, status: true })
                 .populate({
                     path: 'replyTo',
@@ -31,6 +33,7 @@ const getComments = async (req = request, res = response) => {
                 })
                 .populate({ path: 'author', select: 'userName -_id' })
         } else if (userComments) {
+            // Comentarios de un usuario
             comments = await Comments.find({ status: true })
                 .populate({ path: 'idService', select: 'serviceName' })
                 .populate({
@@ -46,16 +49,19 @@ const getComments = async (req = request, res = response) => {
     }
 }
 
+// Se encarga de actualizar un comentario, ya sea una respuesta o un comentario
 const putComment = async (req = request, res = response) => {
     const { id } = req.params
     const { text } = req.body
 
     try {
+        //Obtengamos el comentario y la respuesta.
         const reply = await ReplyComment.findById(id)
         const comment = await Comments.findById(id)
         let msg = ''
+        //En el caso de ser una respuesta.
         if (reply) {
-            //Verify if the author is him or his businnes.
+            //Verificamos que el usuario sea o el dueño del servicio o el propio usuario.
             const service = await Service.findById(reply.author)
             if (!service && reply.author != req.uid) {
                 return res
@@ -63,21 +69,20 @@ const putComment = async (req = request, res = response) => {
                     .json({ success: false, msg: 'that comment is not yours' })
             }
 
-            //update comment
+            //Actualizamos la respuesta.
             msg = await ReplyComment.findByIdAndUpdate(
                 id,
                 { text },
                 { new: true }
             ).populate({ path: 'author', select: 'serviceName userName -_id' })
         } else if (comment) {
-            //Verify if the author is him or his businnes.
+            //Verificamos el dueño del comentario y actualizamos el comentario.
             if (comment.author != req.uid) {
                 return res
                     .status(400)
                     .json({ success: false, msg: 'that comment is not yours' })
             }
 
-            //update comment
             msg = await Comments.findByIdAndUpdate(id, { text }, { new: true })
                 .populate({ path: 'author', select: 'userName -_id' })
                 .populate({ path: 'idService', select: 'serviceName' })
@@ -93,10 +98,12 @@ const putComment = async (req = request, res = response) => {
     }
 }
 
+//Se encarga de añadir un comentario para un determinado servicio.
 const postComments = async (req = request, res = response) => {
     const { id: idService } = req.params
     const { text } = req.body
     try {
+        //Verificamos que el dueño del servicio no se esté comentando a si mismo.
         const service = await Service.findById(idService)
         if (service.idUser == req.uid)
             return res.status(400).json({
@@ -104,10 +111,9 @@ const postComments = async (req = request, res = response) => {
                 msg: 'A bussiness only can put reply not comment to himself',
             })
 
-        //Verify that the user have a pass date in the time.
+        //Verificamos que el usuario al menos tenga ya una cita previa..
         let currentDate = new Date()
         currentDate.setHours(0, 0, 0, 0)
-        const time = currentDate.getHours() * 60 + currentDate.getMinutes()
 
         //Parallel Queries.
         const [apointments, totalComments] = await Promise.all([
@@ -124,11 +130,11 @@ const postComments = async (req = request, res = response) => {
                 msg: 'Only a comment by date. Limit attached',
             })
 
-        //Create Comment Object.
+        //Creamos el comentario.
         let comment = new Comments({ idService, author: req.uid, text })
         await comment.save()
 
-        //Send informaction like others comments.
+        //Mandamos el comentario añadido al sistema
         comment = await Comments.findById(comment.id)
             .populate({ path: 'author', select: 'userName -_id' })
             .populate({ path: 'idService', select: 'serviceName' })
@@ -140,15 +146,16 @@ const postComments = async (req = request, res = response) => {
     }
 }
 
-/* Documented */
+//Se encarga de añadir la respuesta a un determinado comentario.
 const postReplyTo = async (req = request, res = response) => {
     const { id } = req.params
     const { text } = req.body
 
     try {
-        //obtain comment
+        //Obtenemos el comentario.
         const comment = await Comments.findById(id).select('idService -_id')
-        //obtain service to the owner if the user is the bussiness owner
+        //Verificamos si el usuario es el dueño del servicio, en dicho caso establecemos
+        //como dueño de la respuesta el propio servicio.
         const service = await Service.findOne({
             id: comment.idService,
             idUser: req.uid,
@@ -169,7 +176,7 @@ const postReplyTo = async (req = request, res = response) => {
             })
 
         await reply.save()
-
+        //Añadimos la respuesta al hilo del comentario.
         await Comments.findByIdAndUpdate(id, { $push: { replyTo: reply.id } })
 
         reply = await ReplyComment.findById(reply.id).populate({
@@ -184,6 +191,7 @@ const postReplyTo = async (req = request, res = response) => {
     }
 }
 
+//Se encarga de eliminar un comentario o una respuesta a un comentario.
 const deleteComments = async (req = request, res = response) => {
     const { id } = req.params
 
@@ -191,7 +199,7 @@ const deleteComments = async (req = request, res = response) => {
         const reply = await ReplyComment.findById(id)
         const comment = await Comments.findById(id)
         if (reply) {
-            //Verify if the author is him or his businnes.
+            //Verificamos que sea el dueño del comentario.
             const service = await Service.findById(reply.author)
             if (!service && reply.author != req.uid) {
                 return res
@@ -199,22 +207,23 @@ const deleteComments = async (req = request, res = response) => {
                     .json({ success: false, msg: 'that comment is not yours' })
             }
 
-            //delete comment
+            //Eliminamos el comentario.
             await ReplyComment.findByIdAndUpdate(id, { status: false })
         } else if (comment) {
-            //Verify if the author is him or his businnes.
+            //Verificamos el dueño del comentario.
             if (comment.author != req.uid) {
                 return res
                     .status(400)
                     .json({ success: false, msg: 'that comment is not yours' })
             }
 
-            //delete comment
+            //Eliminamos el comentario.
             const replies = await Comments.findByIdAndUpdate(
                 id,
                 { status: false },
                 { new: true }
             )
+            //Establecemos la respuestas de dicho comentario como eliminadas.
             for (reply of replies.replyTo)
                 await ReplyComment.findByIdAndUpdate(reply.id, {
                     status: false,

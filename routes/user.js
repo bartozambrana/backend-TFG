@@ -17,7 +17,7 @@ const jwtValidation = require('../middlewares/jwtValidation')
 
 const router = Router()
 
-router.get('/', [jwtValidation], getUser) //Obtain the user information.
+router.get('/', [jwtValidation], getUser)
 router.put(
     '/',
     [
@@ -41,9 +41,7 @@ router.put(
         fieldsValidation,
     ],
     putUser
-) //Update user :id.
-
-// New user
+)
 router.post(
     '/',
     [
@@ -60,15 +58,18 @@ router.post(
         fieldsValidation,
     ],
     postUser
-) //New user.
-
+)
 router.delete('/', [jwtValidation], deleteUser) //Delete user :id.
 
 router.get('/randomContent/', [jwtValidation], getRandomContent)
 
 router.get(
     '/recommendations/:n',
-    [jwtValidation, check('n', 'number').isNumeric().notEmpty()],
+    [
+        jwtValidation,
+        check('n', 'number').isNumeric().notEmpty(),
+        fieldsValidation,
+    ],
     getRecommendations
 )
 

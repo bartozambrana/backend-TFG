@@ -16,17 +16,14 @@ const fs = require('fs')
 
 const { default: mongoose } = require('mongoose')
 
-/***************************************
- ***************************************
- ***************************************/
-
-//All dates of a user.
+//Método encargado de traspasar una hora de formato 12h a 24h a número 0-1440
 const hourToInteger = (hour) => {
     const elements = hour.split(':')
     return parseInt(elements[0]) * 60 + parseInt(elements[1])
 }
 
-/* Documented */
+//Se encarga de obtener todas fechas de un determinado usuario, ordenándolas de más
+//recientes a menos recientes.
 const getAllDatesUser = async (req = request, res = response) => {
     try {
         const userDates = await Dates.find({ idUser: req.uid })
@@ -38,7 +35,6 @@ const getAllDatesUser = async (req = request, res = response) => {
             userDates,
         })
     } catch (error) {
-        console.log(error)
         return res.status(500).json({
             success: false,
             msg: 'contact with the admin',
@@ -46,12 +42,14 @@ const getAllDatesUser = async (req = request, res = response) => {
     }
 }
 
+//Método encargado de obtener las citas disponibles de un determinado servicio
+//para una determinad fecha.
 const getDatesAvaliablesService = async (req = request, res = response) => {
     const { dateInput } = req.query
     const { idService } = req.params
 
     try {
-        const dateQuery = new Date(dateInput)
+        const dateQuery = new Date(dateInput) //Creamos la fecha, para realizar la petición
         const dates = await Dates.find({
             idService,
             date: dateQuery,
@@ -63,6 +61,8 @@ const getDatesAvaliablesService = async (req = request, res = response) => {
     }
 }
 
+//Método encargado de responder con todas la fechas asignadas para un determinado
+//servicio para una determinada fecha.
 const getAsignedDates = async (req = request, res = response) => {
     const { dateInput } = req.query
     const { idService } = req.params
@@ -88,14 +88,14 @@ const getAsignedDates = async (req = request, res = response) => {
     }
 }
 
-/* Documented */
+//Método encargado de crear una nueva cita.
 const postDate = async (req = request, res = response) => {
     try {
         const { idService } = req.params
         const { dateDay, status } = req.body
         let { initHour, endHour } = req.body
 
-        //Create correct hour format to save it.
+        //Creamos las horas en el formato correcto.
         initHour = hourToInteger(initHour)
         endHour = hourToInteger(endHour)
 
@@ -105,7 +105,7 @@ const postDate = async (req = request, res = response) => {
                 success: false,
             })
         }
-        //Verify that the user is the owner of the bussiness
+        //Verificamos que el usuario es el dueño del servicio.
         const service = await Service.findById(idService)
         if (service.idUser != req.uid) {
             return res.status(400).json({
@@ -113,7 +113,7 @@ const postDate = async (req = request, res = response) => {
                 success: false,
             })
         }
-        //Create and save the new date
+        //Creamos la nueva cita.
         let newDate = ''
         if (status) {
             newDate = new Dates({
@@ -141,6 +141,7 @@ const postDate = async (req = request, res = response) => {
     }
 }
 
+//Actualización de un cita.
 const putDate = async (req = request, res = response) => {
     try {
         const { id } = req.params
@@ -194,16 +195,17 @@ const putDate = async (req = request, res = response) => {
     }
 }
 
+//Selección de una cita por parte de un suaurio.
 const putSelectDateUser = async (req = request, res = response) => {
     const { id } = req.params
     try {
-        //Select date.
+        //Seleccionamos la cita.
         const dateUpdated = await Dates.findByIdAndUpdate(
             id,
             { status: false, idUser: req.uid },
             { new: true }
         ).populate('idUser')
-        //Async email send.
+        //Le enviamos el email al usuario como que la cita ha sido seleccionada.
         sendIndividualEmail({
             subject: 'Cita Seleccionada',
             toEmail: dateUpdated.idUser.email,
@@ -220,7 +222,7 @@ const putSelectDateUser = async (req = request, res = response) => {
     }
 }
 
-/* Documented */
+// El usaurio desea cambiar una cita por otra.
 const putModifyDate = async (req = request, res = response) => {
     const { id } = req.params
     const { idOldDate } = req.body
@@ -239,7 +241,7 @@ const putModifyDate = async (req = request, res = response) => {
         )
             .populate('idUser')
             .populate({ path: 'idService', select: 'serviceName' })
-        //Async email send.
+        //Enviamos el email al usuario con la cita modificada.
         sendIndividualEmail({
             subject: 'Cita Modificada',
             toEmail: dateUpdated.idUser.email,
@@ -256,19 +258,20 @@ const putModifyDate = async (req = request, res = response) => {
         res.status(500).json({ success: false, msg: 'contact with the admin' })
     }
 }
-/* Documented */
+//Anulación de una cita.
 const putCancelDate = async (req = request, res = response) => {
     const { id } = req.params
 
     try {
         const date = await Dates.findById(id).populate('idService')
+        //Comprobamos si el usuario es el empresario o el dueño de la cita.
         if (date.idUser == req.uid || date.idService.idUser == req.uid) {
             const dateUpdated = await Dates.findByIdAndUpdate(id, {
                 status: true,
                 $unset: { idUser: '' },
             })
             const user = await User.findById(dateUpdated.idUser)
-            //Async email send.
+            //MANDA EL EMAIL AL USUARIO
             sendIndividualEmail({
                 subject: 'Cita Cancelada',
                 toEmail: user.email,
@@ -289,7 +292,7 @@ const putCancelDate = async (req = request, res = response) => {
     }
 }
 
-/* Documented */
+//Eliminar una cita del sistema, por parte del empresario.
 const deleteDate = async (req = request, res = response) => {
     const { id } = req.params
     try {
@@ -339,10 +342,11 @@ const getDatesPDF = async (req = request, res = response) => {
     })
 }
 
+//Se encarga de añadir una valoración a una cita del sistema.
 const postValorationDate = async (req = request, res = response) => {
     const { id } = req.params
     const { valoration } = req.body
-    //Verify user
+    //Verificamos que el usuario sea el dueño de la cita.
     let date = await Dates.findById(id)
     if (date.idUser != req.uid)
         return res.status(400).json({
@@ -364,6 +368,7 @@ const postValorationDate = async (req = request, res = response) => {
     res.json({ success: true, date })
 }
 
+//Se encagar de establecer la valoración média de un determinado serciio.
 const getRating = async (req, res) => {
     try {
         const { id } = req.params
@@ -378,11 +383,11 @@ const getRating = async (req, res) => {
             },
         ])
 
-        if (!ratingAvg[0]) return res.json({ success: true, rating: 'NS' })
+        if (!ratingAvg.length === 0)
+            return res.json({ success: true, rating: 'NS' })
 
         res.json({ success: true, rating: ratingAvg[0].average })
     } catch (error) {
-        console.log(error)
         res.status(500).json({ success: false, msg: 'contact with the admin' })
     }
 }

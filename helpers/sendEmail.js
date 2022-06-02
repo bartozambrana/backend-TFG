@@ -1,7 +1,10 @@
-const sendGridMail = require('@sendgrid/mail');
-const fs = require('fs');
+/*
+  Fichero que recoge toda las funcionalidades que tienen que ver con el envío del email.
+*/
+const sendGridMail = require('@sendgrid/mail')
+const fs = require('fs')
 const path = require('path')
-const htmlEmail = ({text,header})=>{
+const htmlEmail = ({ text, header }) => {
     return `<!DOCTYPE html>
     <html lang="es">
     <head>
@@ -116,76 +119,72 @@ const htmlEmail = ({text,header})=>{
         <button>Corre que te lo pierdes!!</button>
       </div>
     </body>
-    </html>`;
+    </html>`
 }
 
-const msg = ({subject,toEmail,text,header})=>{
+const msg = ({ subject, toEmail, text, header }) => {
     return {
-    to: toEmail, // Change to your recipient
-    from: 'zpbarto@gmail.com', // Change to your verified sender
-    subject: subject,
-    text: text,
-    html: htmlEmail({text,header})
-  }
+        to: toEmail, // Change to your recipient
+        from: 'zpbarto@gmail.com', // Change to your verified sender
+        subject: subject,
+        text: text,
+        html: htmlEmail({ text, header }),
+    }
 }
 
-const sendIndividualEmail = async({subject,toEmail,text,header}) => {
+const sendIndividualEmail = async ({ subject, toEmail, text, header }) => {
     //Establecer apiKey
-    sendGridMail.setApiKey(process.env.SENDGRID_API_KEY);
+    sendGridMail.setApiKey(process.env.SENDGRID_API_KEY)
     //envier email
     try {
-        await sendGridMail.send(msg({subject,toEmail,text,header}))
+        await sendGridMail.send(msg({ subject, toEmail, text, header }))
     } catch (error) {
-      throw new Error(error);
+        throw new Error(error)
     }
-    
 }
 
-const sendMultipleEmails = async({subject,toEmail,text,header}) => {
-  //set apiKey
-  sendGridMail.setApiKey(process.env.SENDGRID_API_KEY);
-  //send email
-  try {
-      await sendGridMail.sendMultiple(msg({subject,toEmail,text,header}))
-  } catch (error) {
-    throw new Error(error);
-  }
-  
+const sendMultipleEmails = async ({ subject, toEmail, text, header }) => {
+    //set apiKey
+    sendGridMail.setApiKey(process.env.SENDGRID_API_KEY)
+    //send email
+    try {
+        await sendGridMail.sendMultiple(msg({ subject, toEmail, text, header }))
+    } catch (error) {
+        throw new Error(error)
+    }
 }
 
-const sendDatesBussinessMan = async({toEmail,nameFile}) => {
+const sendDatesBussinessMan = async ({ toEmail, nameFile }) => {
+    const pathToAttachment = path.join(__dirname, '../pdfs', nameFile)
 
-  const pathToAttachment = path.join(__dirname,'../pdfs',nameFile);
+    sendGridMail.setApiKey(process.env.SENDGRID_API_KEY)
 
-  sendGridMail.setApiKey(process.env.SENDGRID_API_KEY);
+    const attachment = fs.readFileSync(pathToAttachment).toString('base64')
 
-  const attachment = fs.readFileSync(pathToAttachment).toString("base64");
+    const mensaje = {
+        to: toEmail,
+        from: 'zpbarto@gmail.com',
+        subject: 'Citas solicitadas',
+        text: 'Le enviamos las citas solicitadas',
+        attachments: [
+            {
+                content: attachment,
+                filename: 'citas.pdf',
+                type: 'application/pdf',
+                disposition: 'attachment',
+            },
+        ],
+    }
 
-  const mensaje = {
-    to:toEmail,
-    from:'zpbarto@gmail.com',
-    subject:'Citas solicitadas',
-    text:'Le enviamos las citas solicitadas',
-    attachments:[
-      {
-        content: attachment,
-        filename: "citas.pdf",
-        type: "application/pdf",
-        disposition: "attachment"
-      }
-    ]
-  }
-
-  try {
-    await sendGridMail.send(mensaje)
-  } catch (error) {
-    throw new Error(error);
-  }
-  
+    try {
+        await sendGridMail.send(mensaje)
+    } catch (error) {
+        throw new Error(error)
+    }
 }
 
 module.exports = {
-  sendIndividualEmail,
-  sendMultipleEmails,
-  sendDatesBussinessMan
-};
+    sendIndividualEmail,
+    sendMultipleEmails,
+    sendDatesBussinessMan,
+}

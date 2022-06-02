@@ -1,4 +1,4 @@
-//Dadas dos listas calcula el coeficiente de pearson entre ambas.
+//Fichero que almacena todas las funciones necesarias para realizar el coeficiente de pearson.
 
 const { request } = require('express')
 const { default: mongoose } = require('mongoose')

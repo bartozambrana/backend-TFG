@@ -6,12 +6,11 @@ const deleteServiceElements = require('../helpers/deleteService')
 const { request } = require('express')
 const { default: mongoose } = require('mongoose')
 
+//Obtemos los datos de un determinado servicio.
 const getService = async (req, res) => {
     try {
-        //hay que añadirle que devuelva los primeros comentarios y posts.
         const { id } = req.params
 
-        //Verify that the user request your service
         const service = await Service.findById(id)
 
         res.json({
@@ -23,6 +22,7 @@ const getService = async (req, res) => {
     }
 }
 
+//Se encarga de devolver los servicios de un determinado usuario.
 const getServicesUser = async (req, res) => {
     try {
         const services = await Service.find({ idUser: req.uid })
@@ -35,7 +35,7 @@ const getServicesUser = async (req, res) => {
         res.status(500).json({ success: false, msg: 'Contact with the admin' })
     }
 }
-
+//Se encarga de añadir un nuevo servicio al sistema.
 const postService = async (req, res) => {
     try {
         const {
@@ -47,14 +47,14 @@ const postService = async (req, res) => {
             postalCode,
         } = req.body
 
-        //Obtain user object from idUser.
+        //Obtenemos el usuario que esta creando el servicio.
         const user = await User.findById(req.uid)
 
-        //Verify if he or she is a business men
+        // Verificamos que un usuario no pueda crear  un servicio.
         if (user.type) {
             const localization = { cityName, street, postalCode }
 
-            //Create de Service instace
+            //Creamos la instancia del servicio.
             const service = new Service({
                 serviceCategory,
                 serviceInfo,
@@ -82,11 +82,11 @@ const postService = async (req, res) => {
 }
 const putService = async (req, res) => {
     try {
-        //Si se modifica la localización se ha de mandar entera.
         const { id } = req.params
         //Verificamos si el id pasado corresponde al negocio que el usuario es propietario.
         const service = await Service.findById(id)
-
+        //Establecemos el formato correcto de la localización y lo guardamos en el sistema.
+        //Verficando previamente que el usuario es el dueño del servicio.
         if (service && service.idUser == req.uid) {
             const { idUser, ...rest } = req.body
 
@@ -114,7 +114,7 @@ const putService = async (req, res) => {
         res.status(500).json({ success: false, msg: 'Contact with the admin' })
     }
 }
-
+//Método encargado de establecer si un usuario sigue o deja de serguir un determinado servicio.
 const postFollowService = async (req, res) => {
     const { id } = req.params
     try {
@@ -150,6 +150,8 @@ const postFollowService = async (req, res) => {
     }
 }
 
+//Método encargado de mandar las categorías establecidas en los servicios.
+//de modo que se permita realizar un filtrado de servicios por categorías.
 const obtainCategoriesAvaliables = async (req, res) => {
     try {
         const services = await Service.find().select('serviceCategory -_id')
@@ -166,6 +168,7 @@ const obtainCategoriesAvaliables = async (req, res) => {
     }
 }
 
+//Método para proporcionar las categorías dadas de alta en el sistema.
 const validCategories = async (req, res) => {
     res.json({
         success: true,
@@ -180,7 +183,7 @@ const validCategories = async (req, res) => {
         ],
     })
 }
-
+//Método encargado de obtner todos los servicios del sistema.
 const obtainAllServices = async (req, res) => {
     try {
         servicesList = await Service.find()
@@ -190,7 +193,7 @@ const obtainAllServices = async (req, res) => {
         res.status(500).json({ msg: 'contact with admin', success: false })
     }
 }
-
+//Méotod encargado de obtener un conjunto de servicios mediante una consulta.
 const obtainServicesQuery = async (req = request, res) => {
     try {
         const { categories, population, name } = req.query
@@ -219,7 +222,7 @@ const obtainServicesQuery = async (req = request, res) => {
         res.status(500).json({ msg: 'contact with admin', success: false })
     }
 }
-
+//Método encargado de la eliminación de un determinado servicio.
 const deleteService = async (req, res) => {
     try {
         const { id } = req.params
@@ -238,7 +241,8 @@ const deleteService = async (req, res) => {
         res.status(500).json({ msg: 'contact with admin', success: false })
     }
 }
-
+//Método encargado de obtener un número de servicios random.
+//que no hayan sido servidos previamente.
 const getServicesRandom = async (req, res) => {
     try {
         const { amount = 10, servicesSended } = req.query
@@ -310,20 +314,6 @@ const getServicesRandom = async (req, res) => {
         res.status(500).json({ msg: 'contact with admin', success: false })
     }
 }
-
-// const getServicesByName = (req, res) => {
-//   try {
-//     const {name} = req.params;
-
-//     let services = await Service.find({status:true});
-//     services = services.filter((s) =>
-//       s.serviceName.toLowerCase().includes(name)
-//     );
-//     res.json({success:true, services});
-//   } catch (error) {
-//     res.status(500).json({msg: "contact with admin", success: false});
-//   }
-// }
 
 module.exports = {
     getService,
