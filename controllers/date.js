@@ -333,6 +333,7 @@ const getDatesPDF = async (req = request, res = response) => {
         const filePath = path.join(__dirname, '../pdfs', nameFile)
         const toEmail = service.idUser.email
 
+        console.log(toEmail)
         await sendDatesBussinessMan({ toEmail, nameFile })
         cleanPDF(nameFile)
         return res.json({

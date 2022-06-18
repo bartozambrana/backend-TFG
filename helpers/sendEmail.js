@@ -1,8 +1,6 @@
 /*
   Fichero que recoge toda las funcionalidades que tienen que ver con el envío del email.
 */
-const sendGridMail = require('@sendgrid/mail')
-const fs = require('fs')
 const path = require('path')
 
 const nodemailer = require('nodemailer')
@@ -159,12 +157,12 @@ const sendDatesBussinessMan = async ({ toEmail, nameFile }) => {
 
         const mensaje = {
             to: toEmail,
-            from: 'zpbarto@gmail.com',
+            from: 'tfg.emails.bartozambrana@gmail.com',
             subject: 'Citas solicitadas',
             text: 'Le enviamos las citas solicitadas',
             attachments: [
                 {
-                    filename: 'citas.pdf',
+                    filename: nameFile,
                     path: pathToAttachment,
                     contentType: 'application/pdf',
                 },
