@@ -12,8 +12,8 @@ const transporter = nodemailer.createTransport({
     port: 465,
     secure: true,
     auth: {
-        user: 'tfg.emails.bartozambrana@gmail.com',
-        pass: 'qmmsnyniloudsxyk',
+        user: process.env.USER_EMAIL,
+        pass: process.env.PASS_EMAIL,
     },
 })
 
@@ -145,23 +145,7 @@ const msg = ({ subject, toEmail, text, header }) => {
     }
 }
 
-const sendIndividualEmail = async ({ subject, toEmail, text, header }) => {
-    //Establecer apiKey
-    sendGridMail.setApiKey(process.env.SENDGRID_API_KEY)
-    //envier email
-    try {
-        await sendGridMail.send(msg({ subject, toEmail, text, header }))
-    } catch (error) {
-        throw new Error(error)
-    }
-}
-
-const sendIndividualEmailTest = async ({
-    subject,
-    toEmail = 'bartozambranap@gmail.com',
-    text,
-    header,
-}) => {
+const sendEmails = async ({ subject, toEmail, text, header }) => {
     try {
         await transporter.sendMail(msg({ subject, toEmail, text, header }))
     } catch (error) {
@@ -169,71 +153,30 @@ const sendIndividualEmailTest = async ({
     }
 }
 
-const sendPDF = async ({ subject, toEmail, text, header }) => {
+const sendDatesBussinessMan = async ({ toEmail, nameFile }) => {
     try {
-        await transporter.sendMail({
-            to: toEmail, // Change to your recipient
-            from: 'tfg.emails.bartozambrana@gmail.com', // Change to your verified sender
-            subject: subject,
-            text: text,
-            html: htmlEmail({ text, header }),
+        const pathToAttachment = path.join(__dirname, '../pdfs', nameFile)
+
+        const mensaje = {
+            to: toEmail,
+            from: 'zpbarto@gmail.com',
+            subject: 'Citas solicitadas',
+            text: 'Le enviamos las citas solicitadas',
             attachments: [
                 {
-                    filename: 'CV.pdf',
-                    path: path.join(__dirname, '../pdfs', 'CV.pdf'),
+                    filename: 'citas.pdf',
+                    path: pathToAttachment,
                     contentType: 'application/pdf',
                 },
             ],
-        })
-    } catch (error) {
-        throw new Error(error)
-    }
-}
-
-const sendMultipleEmails = async ({ subject, toEmail, text, header }) => {
-    //set apiKey
-    sendGridMail.setApiKey(process.env.SENDGRID_API_KEY)
-    //send email
-    try {
-        await sendGridMail.sendMultiple(msg({ subject, toEmail, text, header }))
-    } catch (error) {
-        throw new Error(error)
-    }
-}
-
-const sendDatesBussinessMan = async ({ toEmail, nameFile }) => {
-    const pathToAttachment = path.join(__dirname, '../pdfs', nameFile)
-
-    sendGridMail.setApiKey(process.env.SENDGRID_API_KEY)
-
-    const attachment = fs.readFileSync(pathToAttachment).toString('base64')
-
-    const mensaje = {
-        to: toEmail,
-        from: 'zpbarto@gmail.com',
-        subject: 'Citas solicitadas',
-        text: 'Le enviamos las citas solicitadas',
-        attachments: [
-            {
-                content: attachment,
-                filename: 'citas.pdf',
-                type: 'application/pdf',
-                disposition: 'attachment',
-            },
-        ],
-    }
-
-    try {
-        await sendGridMail.send(mensaje)
+        }
+        await transporter.sendMail(mensaje)
     } catch (error) {
         throw new Error(error)
     }
 }
 
 module.exports = {
-    sendIndividualEmail,
-    sendMultipleEmails,
+    sendEmails,
     sendDatesBussinessMan,
-    sendIndividualEmailTest,
-    sendPDF,
 }

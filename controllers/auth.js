@@ -2,7 +2,7 @@ const bcryptjs = require('bcryptjs')
 const { request, response } = require('express')
 
 const createJWT = require('../helpers/createJWT')
-const { sendIndividualEmailTest, sendPDF } = require('../helpers/sendEmail')
+
 const User = require('../models/users')
 
 /* Documented */
@@ -39,20 +39,6 @@ const login = async (req = request, res = response) => {
         }
         //Creamos el JWT, para mantener las comunicaciones entre el cliente y el servidor.
         token = await createJWT(user.id)
-
-        // await sendIndividualEmailTest({
-        //     subject: 'Prueba envío de email',
-        //     toEmail: 'bartozambranap@gmail.com',
-        //     text: 'Hola, esto es una prueba de envío de email',
-        //     header: 'Prueba envío de email',
-        // })
-
-        await sendPDF({
-            subject: 'cITAS',
-            toEmail: 'bartozambranap@gmail.com',
-            text: 'Hola, esto es una prueba de envío de email',
-            header: 'Prueba envío de email',
-        })
 
         res.json({
             success: true,

@@ -6,10 +6,7 @@ const Service = require('../models/services')
 const Dates = require('../models/dates')
 const User = require('../models/users')
 
-const {
-    sendIndividualEmail,
-    sendDatesBussinessMan,
-} = require('../helpers/sendEmail')
+const { sendEmails, sendDatesBussinessMan } = require('../helpers/sendEmail')
 const { createPdfDocument, cleanPDF } = require('../helpers/upload')
 const path = require('path')
 const fs = require('fs')
@@ -206,7 +203,7 @@ const putSelectDateUser = async (req = request, res = response) => {
             { new: true }
         ).populate('idUser')
         //Le enviamos el email al usuario como que la cita ha sido seleccionada.
-        sendIndividualEmail({
+        sendEmails({
             subject: 'Cita Seleccionada',
             toEmail: dateUpdated.idUser.email,
             text: `Se ha establecido su cita para el día, ${dateUpdated.date.getDate()}-${
@@ -242,7 +239,7 @@ const putModifyDate = async (req = request, res = response) => {
             .populate('idUser')
             .populate({ path: 'idService', select: 'serviceName' })
         //Enviamos el email al usuario con la cita modificada.
-        sendIndividualEmail({
+        sendEmails({
             subject: 'Cita Modificada',
             toEmail: dateUpdated.idUser.email,
             text: `Se ha actualizado su cita para el día, ${dateUpdated.date.getDate()}-${
@@ -272,7 +269,7 @@ const putCancelDate = async (req = request, res = response) => {
             })
             const user = await User.findById(dateUpdated.idUser)
             //MANDA EL EMAIL AL USUARIO
-            sendIndividualEmail({
+            sendEmails({
                 subject: 'Cita Cancelada',
                 toEmail: user.email,
                 text: `Se ha cancelado su cita para el día, ${dateUpdated.date.getDate()}-${

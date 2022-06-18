@@ -6,7 +6,7 @@ const Post = require('../models/posts')
 const User = require('../models/users')
 const Service = require('../models/services')
 
-const { sendMultipleEmails } = require('../helpers/sendEmail')
+const { sendEmails } = require('../helpers/sendEmail')
 const {
     extensionValidation,
     uploadCloudinary,
@@ -149,7 +149,7 @@ const postPost = async (req = request, res = response) => {
             })
 
             if (toEmail.length != 0) {
-                sendMultipleEmails({
+                sendEmails({
                     subject: `Nuevo post del servicio ${correct.serviceName}`,
                     toEmail: toEmail,
                     text: `El servicio ${correct.serviceName} ha establecido un post que te puede interesar`,
