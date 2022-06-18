@@ -322,24 +322,29 @@ const getDatesPDF = async (req = request, res = response) => {
             msg: 'You are not the user owner of this businnes',
         })
 
-    const initDate = new Date(req.body.initDate)
-    const endDate = new Date(req.body.endDate)
+    const initDate = new Date(req.query.initDate)
+    const endDate = new Date(req.query.endDate)
 
     const dateList = await Dates.find({
         date: { $gte: initDate },
         date: { $lte: endDate },
         status: false,
     }).populate({ path: 'idUser', select: 'userName email -_id' })
-    const nameFile = await createPdfDocument(dateList)
-    const filePath = path.join(__dirname, '../pdfs', nameFile)
-    const toEmail = service.idUser.email
 
-    await sendDatesBussinessMan({ toEmail, nameFile })
-    cleanPDF(nameFile)
-    res.json({
-        success: true,
-        msg: 'Dates send by email',
-    })
+    if (dateList.length !== 0) {
+        const nameFile = await createPdfDocument(dateList)
+        const filePath = path.join(__dirname, '../pdfs', nameFile)
+        const toEmail = service.idUser.email
+
+        await sendDatesBussinessMan({ toEmail, nameFile })
+        cleanPDF(nameFile)
+        return res.json({
+            success: true,
+            msg: 'Dates send by email',
+        })
+    }
+
+    return res.json({ success: true, msg: 'No dates found' })
 }
 
 //Se encarga de añadir una valoración a una cita del sistema.

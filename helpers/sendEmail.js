@@ -4,6 +4,19 @@
 const sendGridMail = require('@sendgrid/mail')
 const fs = require('fs')
 const path = require('path')
+
+const nodemailer = require('nodemailer')
+
+const transporter = nodemailer.createTransport({
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true,
+    auth: {
+        user: 'tfg.emails.bartozambrana@gmail.com',
+        pass: 'qmmsnyniloudsxyk',
+    },
+})
+
 const htmlEmail = ({ text, header }) => {
     return `<!DOCTYPE html>
     <html lang="es">
@@ -125,7 +138,7 @@ const htmlEmail = ({ text, header }) => {
 const msg = ({ subject, toEmail, text, header }) => {
     return {
         to: toEmail, // Change to your recipient
-        from: 'zpbarto@gmail.com', // Change to your verified sender
+        from: 'tfg.emails.bartozambrana@gmail.com', // Change to your verified sender
         subject: subject,
         text: text,
         html: htmlEmail({ text, header }),
@@ -138,6 +151,40 @@ const sendIndividualEmail = async ({ subject, toEmail, text, header }) => {
     //envier email
     try {
         await sendGridMail.send(msg({ subject, toEmail, text, header }))
+    } catch (error) {
+        throw new Error(error)
+    }
+}
+
+const sendIndividualEmailTest = async ({
+    subject,
+    toEmail = 'bartozambranap@gmail.com',
+    text,
+    header,
+}) => {
+    try {
+        await transporter.sendMail(msg({ subject, toEmail, text, header }))
+    } catch (error) {
+        throw new Error(error)
+    }
+}
+
+const sendPDF = async ({ subject, toEmail, text, header }) => {
+    try {
+        await transporter.sendMail({
+            to: toEmail, // Change to your recipient
+            from: 'tfg.emails.bartozambrana@gmail.com', // Change to your verified sender
+            subject: subject,
+            text: text,
+            html: htmlEmail({ text, header }),
+            attachments: [
+                {
+                    filename: 'CV.pdf',
+                    path: path.join(__dirname, '../pdfs', 'CV.pdf'),
+                    contentType: 'application/pdf',
+                },
+            ],
+        })
     } catch (error) {
         throw new Error(error)
     }
@@ -187,4 +234,6 @@ module.exports = {
     sendIndividualEmail,
     sendMultipleEmails,
     sendDatesBussinessMan,
+    sendIndividualEmailTest,
+    sendPDF,
 }

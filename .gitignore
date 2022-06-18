@@ -5,3 +5,4 @@ uploads/**.*
 .eslintrc.js
 .prettierignore
 .prettierrc.json
+.env
