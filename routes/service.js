@@ -36,7 +36,15 @@ router.get('/validCategories/', [jwtValidation], validCategories)
 
 router.get('/categories/', [jwtValidation], obtainCategoriesAvaliables)
 
-router.get('/userServices/', [jwtValidation], getServicesUser)
+router.get(
+    '/userServices/',
+    [
+        jwtValidation,
+        check('status', 'invalid status').optional().isBoolean(),
+        fieldsValidation,
+    ],
+    getServicesUser
+)
 
 router.get('/random/', [jwtValidation], getServicesRandom)
 
@@ -45,6 +53,7 @@ router.get(
     [
         jwtValidation,
         check('id', 'No es un ID válido').isMongoId().custom(serviceIdValid),
+        check('status', 'Invalid').optional().isBoolean(),
         fieldsValidation,
     ],
     getService

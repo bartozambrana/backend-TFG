@@ -18,7 +18,18 @@ const { serviceIdValid, commentIdValid } = require('../helpers/dbValidators')
 const { fieldsValidation } = require('../middlewares/fieldsValidation')
 const jwtValidation = require('../middlewares/jwtValidation')
 
-router.get('/', [jwtValidation], getComments)
+router.get(
+    '/',
+    [
+        jwtValidation,
+        check('idService', 'invalid')
+            .optional()
+            .isMongoId()
+            .custom(serviceIdValid),
+        fieldsValidation,
+    ],
+    getComments
+)
 
 router.put(
     '/:id',

@@ -3,6 +3,8 @@ const Work = require('../models/works')
 const Comment = require('../models/Comments')
 const ReplyComment = require('../models/ReplyComment')
 const Dates = require('../models/dates')
+const User = require('../models/users')
+const { deleteFileCloudinary } = require('../helpers/upload')
 
 //Implicaciones de eliminar un servicio del sistema.
 const deleteServiceElements = async (id) => {

@@ -10,9 +10,11 @@ const { default: mongoose } = require('mongoose')
 const getService = async (req, res) => {
     try {
         const { id } = req.params
+        const { status } = req.query
 
-        const service = await Service.findById(id)
-
+        console.log(status)
+        const service = await Service.find({ _id: id, status })
+        console.log(service)
         res.json({
             success: true,
             service,
@@ -25,13 +27,20 @@ const getService = async (req, res) => {
 //Se encarga de devolver los servicios de un determinado usuario.
 const getServicesUser = async (req, res) => {
     try {
-        const services = await Service.find({ idUser: req.uid })
+        let services = ''
 
+        if (req.query.status)
+            services = await Service.find({
+                idUser: req.uid,
+                status: req.query.status,
+            })
+        else services = await Service.find({ idUser: req.uid })
         res.json({
             success: true,
             services,
         })
     } catch (error) {
+        console.log(error)
         res.status(500).json({ success: false, msg: 'Contact with the admin' })
     }
 }
@@ -189,7 +198,6 @@ const obtainAllServices = async (req, res) => {
         servicesList = await Service.find()
         res.json({ success: true, services: servicesList })
     } catch (error) {
-        console.log(error)
         res.status(500).json({ msg: 'contact with admin', success: false })
     }
 }
@@ -236,8 +244,11 @@ const deleteService = async (req, res) => {
 
         await deleteServiceElements(id)
 
-        await Service.findByIdAndDelete(id, { state: false })
+        await Service.findByIdAndUpdate(id, { status: false })
+
+        res.json({ success: true, msg: 'Service deleted' })
     } catch (error) {
+        console.log(error)
         res.status(500).json({ msg: 'contact with admin', success: false })
     }
 }

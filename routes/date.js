@@ -57,7 +57,11 @@ router.get(
 
 router.get(
     '/rating/:id',
-    [jwtValidation, check('id', 'id invalid').isMongoId().custom(dateIdValid)],
+    [
+        jwtValidation,
+        check('id', 'id invalid').isMongoId().custom(serviceIdValid),
+        fieldsValidation,
+    ],
     getRating
 )
 

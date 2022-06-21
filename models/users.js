@@ -1,43 +1,44 @@
-const {Schema,model} = require('mongoose');
-
+const { Schema, model } = require('mongoose')
 
 const User = Schema({
-    userName:{
-        type:String,
-        required: [true,'The userName is obligatory'],
-        unique: true
-    },
-    email:{
+    userName: {
         type: String,
-        required: [true,'The email is obligatory'],
-        unique: true
+        required: [true, 'The userName is obligatory'],
+        unique: true,
     },
-    password:{
+    email: {
         type: String,
-        required: [true,'The email is obligatory']
+        required: [true, 'The email is obligatory'],
+        unique: true,
     },
-    type:{
-        type:Boolean,
-        required: [true,'The type is obligatory']
+    password: {
+        type: String,
+        required: [true, 'The email is obligatory'],
     },
-    followServices: [{
-        type:Schema.Types.ObjectId,
-        ref:'Service'
-    }],
-    status:{
-        type:Boolean,
-        default: true
+    type: {
+        type: Boolean,
+        required: [true, 'The type is obligatory'],
     },
-    postNotifications:{
-        type:Boolean,
-        default: true
-    }
-});
+    followServices: [
+        {
+            type: Schema.Types.ObjectId,
+            ref: 'Service',
+        },
+    ],
+    status: {
+        type: Boolean,
+        default: true,
+    },
+    postNotifications: {
+        type: Boolean,
+        default: true,
+    },
+})
 
-User.methods.toJSON = function() {
-    const{ __v,password,_id,status,postNotifications, ...user} = this.toObject();
-    user.uid = _id;
+User.methods.toJSON = function () {
+    const { __v, password, _id, status, ...user } = this.toObject()
+    user.uid = _id
     return user
 }
 
-module.exports = model('User',User);
+module.exports = model('User', User)

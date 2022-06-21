@@ -323,6 +323,7 @@ const getDatesPDF = async (req = request, res = response) => {
     const endDate = new Date(req.query.endDate)
 
     const dateList = await Dates.find({
+        idService: id,
         date: { $gte: initDate },
         date: { $lte: endDate },
         status: false,
@@ -386,11 +387,12 @@ const getRating = async (req, res) => {
             },
         ])
 
-        if (!ratingAvg.length === 0)
+        if (ratingAvg.length === 0)
             return res.json({ success: true, rating: 'NS' })
 
         res.json({ success: true, rating: ratingAvg[0].average })
     } catch (error) {
+        console.log(error)
         res.status(500).json({ success: false, msg: 'contact with the admin' })
     }
 }
