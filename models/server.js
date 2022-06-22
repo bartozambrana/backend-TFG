@@ -1,33 +1,34 @@
-const express = require("express");
-const fileUpload = require("express-fileupload");
-const cors = require('cors');
-const { dbConnection } = require("../database/config");
+const express = require('express')
+const fileUpload = require('express-fileupload')
+const cors = require('cors')
 
-class Server{
-    constructor(){
-        this.app = express();
-        this.port = process.env.PORT;
-        this.userPath = '/api/users';
-        this.authPath = '/api/auth';
-        this.servicePath = '/api/services';
-        this.postPath = '/api/posts';
-        this.workPath = '/api/works';
-        this.datePath = '/api/dates';
-        this.commentPath = '/api/comments';
-        
+const path = require('path')
+const { dbConnection } = require('../database/config')
+
+class Server {
+    constructor() {
+        this.app = express()
+        this.port = process.env.PORT
+        this.userPath = '/api/users'
+        this.authPath = '/api/auth'
+        this.servicePath = '/api/services'
+        this.postPath = '/api/posts'
+        this.workPath = '/api/works'
+        this.datePath = '/api/dates'
+        this.commentPath = '/api/comments'
+
         //Conectamos a base de datos.
-        this.connectionDB();
+        this.connectionDB()
 
-        this.middlewares();
-        this.routes();
-
+        this.middlewares()
+        this.routes()
     }
 
-    async connectionDB(){
-        await dbConnection();
+    async connectionDB() {
+        await dbConnection()
     }
 
-    middlewares(){
+    middlewares() {
         // De cara al final, para restringir las peticiones únicamente de dicha página.
         // const corsOptions = {
         //     origin: 'https://frontend.com',
@@ -36,37 +37,35 @@ class Server{
         // this.app.use(cors(corsOptions))
 
         //Cors.
-        this.app.use(cors());
+        this.app.use(cors())
 
         //Parseo del body. Todo lo que se mande en el body lo serializa a JSON para una
         //mayor facilidad en el tratamiento de la información
         // this.app.use(express.json({limit:'50mb'}));  //limit for json
         // this.app.use(express.urlencoded({limit: '50mb',extended:true})) //limit for image data encode
-        this.app.use(express.json());
+        this.app.use(express.json())
         //Directorio público
-        this.app.use( express.static('public'));
+        this.app.use(express.static(path.join(__dirname, 'public')))
 
-        //Upload-files. 
-        this.app.use(fileUpload({useTempFiles:true,tempFileDir:'/tmp/'}))
-   
-        
+        //Upload-files.
+        this.app.use(fileUpload({ useTempFiles: true, tempFileDir: '/tmp/' }))
     }
     //manejador de rutas.
-    routes(){
-        this.app.use(this.userPath,require('../routes/user'));
-        this.app.use(this.authPath,require('../routes/auth'));
-        this.app.use(this.servicePath,require('../routes/service'));
-        this.app.use(this.postPath,require('../routes/post'));
-        this.app.use(this.workPath,require('../routes/work'));
-        this.app.use(this.datePath,require('../routes/date'));
-        this.app.use(this.commentPath,require('../routes/comment'));
+    routes() {
+        this.app.use(this.userPath, require('../routes/user'))
+        this.app.use(this.authPath, require('../routes/auth'))
+        this.app.use(this.servicePath, require('../routes/service'))
+        this.app.use(this.postPath, require('../routes/post'))
+        this.app.use(this.workPath, require('../routes/work'))
+        this.app.use(this.datePath, require('../routes/date'))
+        this.app.use(this.commentPath, require('../routes/comment'))
     }
 
-    listen(){
+    listen() {
         this.app.listen(this.port, () => {
-            console.log('Servidor corriendo en el puerto', this.port);
-        });
+            console.log('Servidor corriendo en el puerto', this.port)
+        })
     }
 }
 
-module.exports = Server;
+module.exports = Server
