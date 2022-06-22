@@ -10,14 +10,15 @@ const { default: mongoose } = require('mongoose')
 const getService = async (req, res) => {
     try {
         const { id } = req.params
-        const { status } = req.query
 
-        console.log(status)
-        const service = await Service.find({ _id: id, status })
-        console.log(service)
+        const service = await Service.findById(id)
+
+        const status = service.status
+
         res.json({
             success: true,
             service,
+            status,
         })
     } catch (error) {
         res.status(500).json({ success: false, msg: 'Contact with the admin' })

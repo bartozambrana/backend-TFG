@@ -53,7 +53,6 @@ router.get(
     [
         jwtValidation,
         check('id', 'No es un ID válido').isMongoId().custom(serviceIdValid),
-        check('status', 'Invalid').optional().isBoolean(),
         fieldsValidation,
     ],
     getService
