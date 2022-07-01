@@ -1,27 +1,32 @@
-const {Schema,model} = require('mongoose');
-
+const { Schema, model } = require('mongoose')
 
 const Work = Schema({
-    
-    photos:[{ //base64
+    photos: [
+        {
+            //base64
+            type: String,
+            required: true,
+        },
+    ],
+    description: {
         type: String,
-        required : true
-    }],
-    description:{
-        type:String,
-        required:true
+        required: true,
     },
-    idService:{
+    idService: {
         type: Schema.Types.ObjectId,
-        ref:'Service',
-        required:true
-    }
-}); 
+        ref: 'Service',
+        required: true,
+    },
+    serviceName: {
+        type: String,
+        required: false,
+    },
+})
 
-Work.methods.toJSON = function() {
-    const{ __v,_id, ...work} = this.toObject();
+Work.methods.toJSON = function () {
+    const { __v, _id, ...work } = this.toObject()
     work.uid = _id
-    return work;
+    return work
 }
 
-module.exports = model('Work',Work);
+module.exports = model('Work', Work)

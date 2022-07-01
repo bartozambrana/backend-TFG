@@ -3,8 +3,12 @@
 */
 
 const integerToHour = (integer) => {
-    const hours = Math.floor(integer / 60)
+    let hours = Math.floor(integer / 60)
     const minutes = integer - hours * 60
+
+    if (hours <= 9) {
+        hours = '0' + hours
+    }
 
     if (minutes == 0) {
         return `${hours}:00h`

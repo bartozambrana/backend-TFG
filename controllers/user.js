@@ -128,8 +128,20 @@ const getRandomContent = async (req = request, res = response) => {
             _id: { $nin: servedPosts },
             idService: { $in: followedServices },
         })
+
             .sort({ id: -1 })
             .limit(1)
+            .populate('idService', 'serviceName')
+
+        posts = posts.map((post) => {
+            let serviceName = post.idService.serviceName
+
+            post.serviceName = serviceName
+
+            post.idService = post.idService._id
+
+            return post
+        })
 
         //Add currenty posts served.
         posts.map((element) => servedPosts.push(element.id))
@@ -138,16 +150,24 @@ const getRandomContent = async (req = request, res = response) => {
         if (followedServices.length === 0) amount = 5
 
         // dos post de servicios aleatorios.
-        posts.push(
-            ...(await Posts.find({
-                _id: {
-                    $nin: servedPosts,
-                },
-                idService: { $nin: followedServices },
-            })
-                .sort({ id: -1 })
-                .limit(amount))
-        )
+        let randomPosts = await Posts.find({
+            _id: {
+                $nin: servedPosts,
+            },
+            idService: { $nin: followedServices },
+        })
+            .sort({ id: -1 })
+            .limit(amount)
+            .populate('idService', 'serviceName')
+
+        randomPosts = randomPosts.map((post) => {
+            post.serviceName = post.idService.serviceName
+
+            post.idService = post.idService._id
+            return post
+        })
+
+        posts.push(...randomPosts)
 
         //Lo msimo para el caso de los trabajos.
 
@@ -158,21 +178,35 @@ const getRandomContent = async (req = request, res = response) => {
         })
             .sort({ id: -1 })
             .limit(1)
+            .populate({ path: 'idService', select: 'serviceName' })
+
+        works.map((element) => {
+            element.serviceName = element.idService.serviceName
+            element.idService = element.idService._id
+            return element
+        })
 
         //Add currenty works served.
         works.map((element) => servedWorks.push(element.id))
 
         // The rest of posts from random services.
-        works.push(
-            ...(await Works.find({
-                _id: {
-                    $nin: servedWorks,
-                },
-                idService: { $nin: followedServices },
-            })
-                .sort({ id: -1 })
-                .limit(amount))
-        )
+        let randomWorks = await Works.find({
+            _id: {
+                $nin: servedWorks,
+            },
+            idService: { $nin: followedServices },
+        })
+            .sort({ id: -1 })
+            .limit(amount)
+            .populate({ path: 'idService', select: 'serviceName' })
+
+        randomWorks = randomWorks.map((work) => {
+            work.serviceName = work.idService.serviceName
+            work.idService = work.idService._id
+            return work
+        })
+        works.push(...randomWorks)
+
         let homeContent = works.concat(posts)
         //establecemos un orden aleatrorio del contenido.
         homeContent.sort(() => Math.random() - 0.5)
