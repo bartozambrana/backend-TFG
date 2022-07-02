@@ -183,7 +183,7 @@ const validCategories = async (req, res) => {
     res.json({
         success: true,
         categories: [
-            'eletrónica',
+            'electrónica',
             'mecánica',
             'auditoría-asesoría',
             'aseguradoras',

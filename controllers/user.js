@@ -37,6 +37,7 @@ const getUser = async (req = request, res = response) => {
 //El usiario desea actualizar los datos del mismo.
 const putUser = async (req = request, res = response) => {
     const { password, ...rest } = req.body
+
     try {
         //Si el usuario quiere cambiar la contraseña, la ciframos previamente.
         if (password) {
@@ -89,8 +90,11 @@ const deleteUser = async (req = request, res = response) => {
         //Damos de baja las servicios del usuario si los pasee.
         if (user.type) {
             const services = await Service.find({ idUser: user.id })
-            for (const service of Object.values(services))
+
+            for (const service of Object.values(services)) {
                 await deleteServiceElements(service.id)
+                await Service.findByIdAndUpdate(service.id, { status: false })
+            }
         }
 
         res.json({

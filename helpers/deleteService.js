@@ -37,7 +37,7 @@ const deleteServiceElements = async (id) => {
     }
 
     //Establecemos todas las citas del sistema como ya asignadas, para seguir manteniendo las valoraciones.
-    await Dates.find({ idService: id }).update({ status: false })
+    await Dates.find({ idService: id }).updateMany({ status: false })
 
     //Eliminamos el servicio como seguido de los usuarios.
     await User.find({

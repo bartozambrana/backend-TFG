@@ -106,7 +106,7 @@ const replyIdValid = async (id) => {
 
 const categoryValid = async (category) => {
     const validCategories = [
-        'eletrónica',
+        'electrónica',
         'mecánica',
         'auditoría-asesoría',
         'aseguradoras',

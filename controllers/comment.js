@@ -34,13 +34,9 @@ const getComments = async (req = request, res = response) => {
                 .populate({ path: 'author', select: 'userName -_id' })
         } else if (userComments) {
             // Comentarios de un usuario
-            comments = await Comments.find({ status: true })
+            comments = await Comments.find({ status: true, author: req.uid })
                 .populate({ path: 'idService', select: 'serviceName' })
-                .populate({
-                    path: 'replyTo',
-                    match: { author: req.uid, status: true },
-                })
-                .or({ author: req.uid })
+                .populate('replyTo')
         }
 
         res.json({ success: true, comments })
@@ -112,8 +108,6 @@ const postComments = async (req = request, res = response) => {
             })
 
         //Verificamos que el usuario al menos tenga ya una cita previa..
-        let currentDate = new Date()
-        currentDate.setHours(0, 0, 0, 0)
 
         //Parallel Queries.
         const [apointments, totalComments] = await Promise.all([
@@ -127,7 +121,7 @@ const postComments = async (req = request, res = response) => {
         if (apointments.length <= totalComments.length)
             return res.status(400).json({
                 success: false,
-                msg: 'Only a comment by date. Limit attached',
+                msg: 'Only a comment by finished appointment.',
             })
 
         //Creamos el comentario.
