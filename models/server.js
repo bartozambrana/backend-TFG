@@ -59,7 +59,7 @@ class Server {
         this.app.use(this.workPath, require('../routes/work'))
         this.app.use(this.datePath, require('../routes/date'))
         this.app.use(this.commentPath, require('../routes/comment'))
-        this.app.use('/*', path.join(__dirname, '../public/index.html'))
+        this.app.use('/*', '../public/index.html')
     }
 
     listen() {
