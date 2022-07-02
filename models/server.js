@@ -1,6 +1,7 @@
 const express = require('express')
 const fileUpload = require('express-fileupload')
 const cors = require('cors')
+const path = require('path')
 
 const { dbConnection } = require('../database/config')
 
@@ -58,6 +59,7 @@ class Server {
         this.app.use(this.workPath, require('../routes/work'))
         this.app.use(this.datePath, require('../routes/date'))
         this.app.use(this.commentPath, require('../routes/comment'))
+        this.app.use('/*', path.join(__dirname, '../public/index.html'))
     }
 
     listen() {
