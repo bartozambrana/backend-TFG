@@ -44,7 +44,7 @@ class Server {
         // this.app.use(express.urlencoded({limit: '50mb',extended:true})) //limit for image data encode
         this.app.use(express.json())
         //Directorio público
-        this.app.use(express.static(__dirname + '/public'))
+        this.app.use(express.static('public'))
 
         //Upload-files.
         this.app.use(fileUpload({ useTempFiles: true, tempFileDir: '/tmp/' }))
