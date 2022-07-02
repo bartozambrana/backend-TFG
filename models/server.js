@@ -44,8 +44,6 @@ class Server {
         // this.app.use(express.json({limit:'50mb'}));  //limit for json
         // this.app.use(express.urlencoded({limit: '50mb',extended:true})) //limit for image data encode
         this.app.use(express.json())
-        //Directorio público
-        this.app.use('/', express.static('public'))
 
         //Upload-files.
         this.app.use(fileUpload({ useTempFiles: true, tempFileDir: '/tmp/' }))
@@ -59,7 +57,12 @@ class Server {
         this.app.use(this.workPath, require('../routes/work'))
         this.app.use(this.datePath, require('../routes/date'))
         this.app.use(this.commentPath, require('../routes/comment'))
-        this.app.use('/*', '../public/index.html')
+
+        //Directorio público
+        this.app.use(express.static(path.join(__dirname, '../public')))
+        this.app.use('*', (req, res) => {
+            res.sendFile(path.join(__dirname, '../public/index.html'))
+        })
     }
 
     listen() {
