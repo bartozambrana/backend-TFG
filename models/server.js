@@ -29,20 +29,11 @@ class Server {
     }
 
     middlewares() {
-        // De cara al final, para restringir las peticiones únicamente de dicha página.
-        // const corsOptions = {
-        //     origin: 'https://frontend.com',
-        //     optionsSuccessStatus:200
-        // }
-        // this.app.use(cors(corsOptions))
-
         //Cors.
         this.app.use(cors())
 
         //Parseo del body. Todo lo que se mande en el body lo serializa a JSON para una
         //mayor facilidad en el tratamiento de la información
-        // this.app.use(express.json({limit:'50mb'}));  //limit for json
-        // this.app.use(express.urlencoded({limit: '50mb',extended:true})) //limit for image data encode
         this.app.use(express.json())
 
         //Upload-files.
